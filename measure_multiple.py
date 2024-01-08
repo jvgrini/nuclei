@@ -5,13 +5,11 @@ from glob import glob
 import os
 import seaborn as sns
 from skimage import io, measure
-import pandas as pd
-import napari
 from sklearn.cluster import KMeans
 import re
 
 
-def classify_neurons(properties, name, num_clusters=2):
+def classify_neurons(properties, name, num_clusters=2, savefig=False):
 
     pattern = re.compile(r'images\\(.*?)\s+G4')
 
@@ -24,6 +22,7 @@ def classify_neurons(properties, name, num_clusters=2):
     else:
         # Handle the case where the input name doesn't match the expected pattern
         print(f'Invalid name format: {name}')
+        new_name = name
         
     
     # Extract Channel2_intensity values from properties
@@ -143,10 +142,6 @@ def plot_g4_whole_image(ipsii_properties, contra_properties):
     plt.show()
 
 
-image_folder = 'images'
-mask_folder = 'masks'
-mask_region_folder = "masks_regions_extended"
-
 def load_images_and_masks(image_folder, mask_folder):
     image_files = glob(os.path.join(image_folder, '*.lsm'))
 
@@ -230,8 +225,9 @@ def load_images_masks_and_regionmasks(image_folder, mask_folder, mask_region_fol
 
         ipsii_properties.append([ca1_props, ca3_props, dg_props])
         #ipsii_region_areas.append(labeled_area)
-    
+    print("len contra pairs", len(contra_pairs))
     for i in range(len(contra_pairs)):
+        print(i)
         mask = io.imread(contra_pairs[i][1])
         region_mask = io.imread(contra_pairs[i][2])
 
@@ -258,16 +254,20 @@ def load_images_masks_and_regionmasks(image_folder, mask_folder, mask_region_fol
 
         contra_properties.append([ca1_props, ca3_props, dg_props])
 
-        return ipsii_properties, contra_properties
+    return ipsii_properties, contra_properties
     
 def measure_channel_regions(ipsii_properties, contra_properties):
     ipsii_g4 = []
     contra_g4 = []
 
+    print(len(contra_properties))
+
     for i in range(len(contra_properties)):
         contra_g4.append(measure_g4(contra_properties[i]))
     for i in range(len(ipsii_properties)):
         ipsii_g4.append(measure_g4(ipsii_properties[i]))
+    print(len(contra_g4))
+    print(len(ipsii_g4))
     t_statistic, p_value = stats.ttest_ind(ipsii_g4[0], contra_g4[0])
     print(f"CA1 p-val {p_value}")
     t_statistic, p_value = stats.ttest_ind(ipsii_g4[1], contra_g4[1])

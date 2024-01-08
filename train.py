@@ -142,28 +142,13 @@ def augmenter(x, y):
     x = random_intensity_change(x)
     return x, y
 
-quick_demo = False
 
-if quick_demo:
-    print (
-        "NOTE: This is only for a quick demonstration!\n"
-        "      Please set the variable 'quick_demo = False' for proper (long) training.",
-        file=sys.stderr, flush=True
-    )
-    model.train(X_trn, Y_trn, validation_data=(X_val,Y_val), augmenter=augmenter,
-                epochs=100, steps_per_epoch=5)
 
-    print("====> Stopping training and loading previously trained demo model from disk.", file=sys.stderr, flush=True)
-    model = StarDist3D.from_pretrained('3D_demo')
-else:
-    model.train(X_trn, Y_trn, validation_data=(X_val,Y_val), augmenter=augmenter)
-None;
 
-if quick_demo:
-    #only use a single validation image for demo
-    model.optimize_thresholds(X_val[:1], Y_val[:1])
-else: 
-    model.optimize_thresholds(X_val, Y_val)
+
+model.train(X_trn, Y_trn, validation_data=(X_val,Y_val), augmenter=augmenter)
+
+model.optimize_thresholds(X_val, Y_val)
 
 Y_val_pred = [model.predict_instances(x, n_tiles=model._guess_n_tiles(x), show_tile_progress=False)[0]
               for x in tqdm(X_val)]
