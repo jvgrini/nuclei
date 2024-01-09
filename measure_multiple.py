@@ -7,11 +7,14 @@ import seaborn as sns
 from skimage import io, measure
 from sklearn.cluster import KMeans
 import re
+import napari
+
+spacing = ([0.3459, 0.3459, 0.9278])
 
 
-def classify_neurons(properties, name, num_clusters=2, savefig=False):
+def classify_neurons(labels, properties, name, num_clusters=2, savefig=False):
 
-    pattern = re.compile(r'images\\(.*?)\s+G4')
+    pattern = re.compile(r'nuclei/Images\\(.*?)\s+G4')
 
     # Use the regular expression to extract the desired part of the file name
     match = pattern.search(name)
@@ -24,64 +27,118 @@ def classify_neurons(properties, name, num_clusters=2, savefig=False):
         print(f'Invalid name format: {name}')
         new_name = name
         
-    
+    labels = io.imread(labels)
     # Extract Channel2_intensity values from properties
-    channel2_intensity_values = [prop["Channel2_intensity"] for prop in properties]
+    intensity_values = [prop['Channel2_intensity'] for prop in properties]
 
-    # Convert the list to a NumPy array
-    data_array = np.array(channel2_intensity_values).reshape(-1, 1)
+    # Reshape the intensity values array for clustering
+    intensity_values_reshaped = np.array(intensity_values).reshape(-1, 1)
 
-    # Perform k-means clustering
-    kmeans = KMeans(n_clusters=num_clusters, random_state=0, n_init="auto")
-    labels = kmeans.fit_predict(data_array)
+    # Define the number of clusters (you can adjust this based on your data)
+    n_clusters = 2
 
-    cluster_means = [np.mean(data_array[labels == i]) for i in range(num_clusters)]
-    negative_cluster = np.argmin(cluster_means)
+    # Apply KMeans clustering
+    kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+    clusters = kmeans.fit_predict(intensity_values_reshaped)
+    
+    positive_labels = [prop['label'] for prop, cluster in zip(properties, clusters) if cluster == 1]
 
-    cluster_0_values = data_array[labels == negative_cluster].flatten()
-    cluster_1_values = data_array[labels != negative_cluster].flatten()
+    # Initialize an empty mask for the separated positive labels
+    separated_positive_labels = np.zeros_like(labels)
+
+    positive_mask = np.isin(labels, positive_labels)
+
+    # Use boolean indexing to assign positive labels directly
+    separated_positive_labels[positive_mask] = labels[positive_mask]
 
 
-    fig, ax = plt.subplots()
-    # Create a violin plot for all data points
+    
 
-
-    # Plot boxplots for both clusters at the specified x-values
-    sns.violinplot(y=data_array.flatten(), inner=None, color="lightblue", ax=ax, zorder=1)
-
-        # Plot the boxplots on top
-    ax.boxplot([cluster_0_values], positions=[0], widths=0.2, patch_artist=True,
-           boxprops=dict(facecolor="seagreen", zorder=2, alpha=.7),
-           medianprops=dict(color="black"),
-           whiskerprops=dict(color="darkgreen"),
-           capprops=dict(color="darkgreen"))
-
-    ax.boxplot([cluster_1_values], positions=[0], widths=0.2, patch_artist=True,
-           boxprops=dict(facecolor="lightcoral", zorder=2, alpha=.7),
-           medianprops=dict(color="black"),
-           whiskerprops=dict(color="firebrick"),
-           capprops=dict(color="firebrick"))
+    # Visualize positively clustered labels using napari
+    spacing = (1.0, 1.0, 1.0)  # Adjust this based on your data
+    viewer = napari.view_labels(labels, scale=spacing, ndisplay=3)
+    
+    # Add positively clustered labels to the viewer
+    viewer.add_labels(separated_positive_labels, name='Positive Labels')
+    napari.run()
 
 
 
-    plt.title(new_name)
-    plt.ylabel('NeuN intensity')
+    # cluster_0_values = intensities[labels != positively_clustered_labels].flatten()
+    # cluster_1_values = intensities[labels == positively_clustered_labels].flatten()
 
-    save_path = os.path.join("D:\\Users\\Jonas\\plots", f"{new_name}_astrocytes.pdf")
-    #plt.savefig(save_path)
 
-    plt.show()
+    # fig, ax = plt.subplots()
+    # # Create a violin plot for all data points
 
-    # Count positive and negative clusters
-    positive_count = np.sum(labels == 1)
-    negative_count = np.sum(labels == 0)
-    print(new_name)
-    print(f"Number of astrocytes in positive cluster: {positive_count}")
-    print(f"Number of astrocytes in negative cluster: {negative_count}")
+
+    # # Plot boxplots for both clusters at the specified x-values
+    # sns.violinplot(y=intensities.flatten(), inner=None, color="lightblue", ax=ax, zorder=1)
+
+    #     # Plot the boxplots on top
+    # ax.boxplot([cluster_0_values], positions=[0], widths=0.2, patch_artist=True,
+    #        boxprops=dict(facecolor="seagreen", zorder=2, alpha=.7),
+    #        medianprops=dict(color="black"),
+    #        whiskerprops=dict(color="darkgreen"),
+    #        capprops=dict(color="darkgreen"))
+
+    # ax.boxplot([cluster_1_values], positions=[0], widths=0.2, patch_artist=True,
+    #        boxprops=dict(facecolor="lightcoral", zorder=2, alpha=.7),
+    #        medianprops=dict(color="black"),
+    #        whiskerprops=dict(color="firebrick"),
+    #        capprops=dict(color="firebrick"))
+
+
+
+    # plt.title(new_name)
+    # plt.ylabel('NeuN intensity')
+
+    # save_path = os.path.join("D:\\Users\\Jonas\\plots", f"{new_name}_astrocytes.pdf")
+    # #plt.savefig(save_path)
+
+    # plt.show()
+
+    # # Count positive and negative clusters
+    # positive_count = np.sum(labels == 1)
+    # negative_count = np.sum(labels == 0)
+    # print(new_name)
+    # print(f"Number of astrocytes in positive cluster: {positive_count}")
+    # print(f"Number of astrocytes in negative cluster: {negative_count}")
 
     return labels
 
 def measure_nuc(image_path, label_path, read_images=False):
+
+    if not read_images: 
+        image = io.imread(image_path)
+        print(image_path)
+     # Load the label file
+        labels = io.imread(label_path)
+    
+    else:
+        image = image_path
+        labels = label_path
+
+    properties = measure.regionprops(labels, intensity_image=image)
+    label_properties = []
+
+    for prop in properties:
+        region_label = prop.label
+        region_area = prop.area
+        region_mean_intensity = prop.mean_intensity
+        ch1_intensity, ch2_intensity, ch3_intensity, ch4_intensity = region_mean_intensity
+        label_properties.append({
+            "label": region_label,
+            "Area": region_area,
+            "Channel1_intensity": ch1_intensity,
+            "Channel2_intensity": ch2_intensity,
+            "Channel3_intensity": ch3_intensity,
+            "Channel4_intensity": ch4_intensity,
+        })
+
+    return label_properties
+
+def measure_cyto(image_path, label_path, read_images=False):
 
     if not read_images: 
         image = io.imread(image_path)
@@ -160,6 +217,9 @@ def load_images_and_masks(image_folder, mask_folder):
                 ipsii_pairs.append([image_path, mask_path])
                 ipsii_names.append(image_path)
 
+    return ipsii_pairs, contra_pairs, ipsii_names, contra_names
+
+def measure_properties(ipsii_pairs, contra_pairs):    
     contra_properties = []
     ipsii_properties = []
 
@@ -174,7 +234,7 @@ def load_images_and_masks(image_folder, mask_folder):
 
     print(len(ipsii_properties))
     print(len(contra_properties))
-    return ipsii_properties, contra_properties, ipsii_names, contra_names
+    return ipsii_properties, contra_properties
 
 def load_images_masks_and_regionmasks(image_folder, mask_folder, mask_region_folder):
     image_files = glob(os.path.join(image_folder, '*.lsm'))
