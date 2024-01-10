@@ -12,9 +12,9 @@ import napari
 spacing = ([0.3459, 0.3459, 0.9278])
 
 
-def classify_neurons(labels, properties, name, num_clusters=2, savefig=False):
+def classify_neurons(labels, properties, name, num_clusters=2, savefig=False, inspect_classified_masks = False):
 
-    pattern = re.compile(r'nuclei/Images\\(.*?)\s+G4')
+    pattern = re.compile(r'Images\/(.*?)\s+G4')
 
     # Use the regular expression to extract the desired part of the file name
     match = pattern.search(name)
@@ -53,57 +53,61 @@ def classify_neurons(labels, properties, name, num_clusters=2, savefig=False):
 
 
     
+    if inspect_classified_masks:
+        # Visualize positively clustered labels using napari
+        spacing = (1.0, 1.0, 1.0)  # Adjust this based on your data
+        viewer = napari.view_labels(labels, scale=spacing, ndisplay=3)
+        
+        # Add positively clustered labels to the viewer
+        viewer.add_labels(separated_positive_labels, name='Positive Labels')
+        napari.run()
 
-    # Visualize positively clustered labels using napari
-    spacing = (1.0, 1.0, 1.0)  # Adjust this based on your data
-    viewer = napari.view_labels(labels, scale=spacing, ndisplay=3)
-    
-    # Add positively clustered labels to the viewer
-    viewer.add_labels(separated_positive_labels, name='Positive Labels')
-    napari.run()
+    cluster_0_mask = (clusters == 0)
+    cluster_1_mask = (clusters == 1)
 
-
-
-    # cluster_0_values = intensities[labels != positively_clustered_labels].flatten()
-    # cluster_1_values = intensities[labels == positively_clustered_labels].flatten()
-
-
-    # fig, ax = plt.subplots()
-    # # Create a violin plot for all data points
-
-
-    # # Plot boxplots for both clusters at the specified x-values
-    # sns.violinplot(y=intensities.flatten(), inner=None, color="lightblue", ax=ax, zorder=1)
-
-    #     # Plot the boxplots on top
-    # ax.boxplot([cluster_0_values], positions=[0], widths=0.2, patch_artist=True,
-    #        boxprops=dict(facecolor="seagreen", zorder=2, alpha=.7),
-    #        medianprops=dict(color="black"),
-    #        whiskerprops=dict(color="darkgreen"),
-    #        capprops=dict(color="darkgreen"))
-
-    # ax.boxplot([cluster_1_values], positions=[0], widths=0.2, patch_artist=True,
-    #        boxprops=dict(facecolor="lightcoral", zorder=2, alpha=.7),
-    #        medianprops=dict(color="black"),
-    #        whiskerprops=dict(color="firebrick"),
-    #        capprops=dict(color="firebrick"))
+    cluster_0_values = intensity_values_reshaped[cluster_0_mask].flatten()
+    cluster_1_values = intensity_values_reshaped[cluster_1_mask].flatten()
 
 
 
-    # plt.title(new_name)
-    # plt.ylabel('NeuN intensity')
 
-    # save_path = os.path.join("D:\\Users\\Jonas\\plots", f"{new_name}_astrocytes.pdf")
-    # #plt.savefig(save_path)
+    fig, ax = plt.subplots()
+    # Create a violin plot for all data points
 
-    # plt.show()
 
-    # # Count positive and negative clusters
-    # positive_count = np.sum(labels == 1)
-    # negative_count = np.sum(labels == 0)
-    # print(new_name)
-    # print(f"Number of astrocytes in positive cluster: {positive_count}")
-    # print(f"Number of astrocytes in negative cluster: {negative_count}")
+    # Plot boxplots for both clusters at the specified x-values
+    sns.violinplot(y=np.array(intensity_values).flatten(), inner=None, color="lightblue", ax=ax, zorder=1)
+
+
+        # Plot the boxplots on top
+    ax.boxplot([cluster_0_values], positions=[0], widths=0.2, patch_artist=True,
+           boxprops=dict(facecolor="seagreen", zorder=2, alpha=.7),
+           medianprops=dict(color="black"),
+           whiskerprops=dict(color="darkgreen"),
+           capprops=dict(color="darkgreen"))
+
+    ax.boxplot([cluster_1_values], positions=[0], widths=0.2, patch_artist=True,
+           boxprops=dict(facecolor="lightcoral", zorder=2, alpha=.7),
+           medianprops=dict(color="black"),
+           whiskerprops=dict(color="firebrick"),
+           capprops=dict(color="firebrick"))
+
+
+    plt.xticks([0],"")
+    plt.title(new_name)
+    plt.ylabel('NeuN intensity')
+
+    save_path = os.path.join("D:\\Users\\Jonas\\plots", f"{new_name}_neurons.pdf")
+    #plt.savefig(save_path)
+
+    plt.show()
+
+    # Count positive and negative clusters
+    positive_count = np.sum(labels == 1)
+    negative_count = np.sum(labels == 0)
+    print(new_name)
+    print(f"Number of astrocytes in positive cluster: {positive_count}")
+    print(f"Number of astrocytes in negative cluster: {negative_count}")
 
     return labels
 
