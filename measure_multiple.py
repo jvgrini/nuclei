@@ -4,12 +4,34 @@ import numpy as np
 from glob import glob
 import os
 import seaborn as sns
-from skimage import io, measure
+from skimage import io, measure, filters
 from sklearn.cluster import KMeans
 import re
 import napari
 
 spacing = ([0.3459, 0.3459, 0.9278])
+
+def extend_region_masks(input_folder, output_folder):
+    # Create the output folder if it doesn't exist
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+
+    # List all TIFF files in the input folder
+    tiff_files = [file for file in os.listdir(input_folder) if file.endswith('.tif')]
+
+    for tiff_file in tiff_files:
+        # Read the TIFF image
+        image_path = os.path.join(input_folder, tiff_file)
+        image = io.imread(image_path)
+        max_values = np.max(image, axis=0)
+    
+    # Set the values in the original image to the maximum values
+        image[:, :, :] = max_values
+        # Save the extended mask to the output folder
+        output_path = os.path.join(output_folder, tiff_file)
+        io.imsave(output_path, image)
+
+        print(f"Extended mask saved: {output_path}")
 
 
 def classify_neurons(labels, properties, name, num_clusters=2, savefig=False, inspect_classified_masks = False):
@@ -187,6 +209,32 @@ def measure_g4(properties):
 
     return G4_fluo
 
+def measure_g4_voxels(mask_path, image_path, g4_channel=2):
+    image = io.imread(image_path)
+    masks = io.imread(mask_path)
+    print(np.shape(image))
+    thresh = filters.threshold_otsu(image[:,:,:,g4_channel])
+    print("thresh: ", thresh)
+    binary_mask = image[:,:,:,g4_channel] > thresh
+
+    regions = measure.regionprops(masks)
+
+    proportions = []
+
+    # Iterate over each labeled area
+    for region in regions:
+        bbox = region.bbox
+        label_mask = masks[bbox[0]:bbox[3], bbox[1]:bbox[4], bbox[2]:bbox[5]] == region.label
+
+        # Calculate the proportion of foreground pixels in the labeled area
+        foreground_pixels = (binary_mask[bbox[0]:bbox[3], bbox[1]:bbox[4], bbox[2]:bbox[5]] * label_mask).sum()
+        total_pixels = label_mask.sum()
+        proportion = foreground_pixels / total_pixels if total_pixels > 0 else 0
+        # Append the proportion to the list
+        proportions.append(proportion)
+    print(len(proportions), np.mean(proportions))
+    return proportions
+
 def plot_g4_whole_image(ipsii_properties, contra_properties):
     G4_fluo_ipsii, G4_fluo_contra = measure_g4(ipsii_properties), measure_g4(contra_properties)
     
@@ -213,7 +261,7 @@ def load_images_and_masks(image_folder, mask_folder):
 
     for image_path in image_files:
         mask_path = os.path.join(mask_folder, os.path.basename(image_path).replace('.lsm', '_mask.tif'))
-        if os.path.exists(mask_path) and all(substring not in image_path for substring in ['MIX2','MIX1', 'MIX3']):
+        if os.path.exists(mask_path) and all(substring not in image_path for substring in ['MIX2','MIX1']):
             if 'CONTRA' in image_path:
                 contra_pairs.append([image_path, mask_path])
                 contra_names.append(image_path)
