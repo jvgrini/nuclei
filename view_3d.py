@@ -1,7 +1,7 @@
 import napari
 from skimage import io
 
-img = io.imread("Images/P9 10 MIX4 HI IPSII G4green IBA1pink CD68red 3x4 40x 1.lsm")
+img = io.imread("Images/P9 7 IPSII MIX4 G4green NeuNRED GFAPpink  3x4 40x 2.lsm")
 labels = io.imread("masks/P9 10 MIX4 HI IPSII G4green IBA1pink CD68red 3x4 40x 1_mask.tif")
 region_label = io.imread("P9 10 ipsii mix4 neurons test.tif")
 spacing = ([0.3459, 0.3459, 0.9278])

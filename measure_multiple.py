@@ -34,7 +34,7 @@ def extend_region_masks(input_folder, output_folder):
         print(f"Extended mask saved: {output_path}")
 
 
-def classify_neurons(labels, properties, name, num_clusters=2, savefig=False, inspect_classified_masks = False):
+def classify_neurons(labels, properties, name, num_clusters=2, savefig=False, inspect_classified_masks = True):
 
     pattern = re.compile(r'Images\/(.*?)\s+G4')
 
@@ -60,10 +60,17 @@ def classify_neurons(labels, properties, name, num_clusters=2, savefig=False, in
     n_clusters = 2
 
     # Apply KMeans clustering
-    kmeans = KMeans(n_clusters=n_clusters, random_state=42)
+    kmeans = KMeans(n_clusters=n_clusters, random_state=42, n_init="auto")
     clusters = kmeans.fit_predict(intensity_values_reshaped)
     
-    positive_labels = [prop['label'] for prop, cluster in zip(properties, clusters) if cluster == 1]
+    max_intensity_cluster_index = np.argmax(kmeans.cluster_centers_)
+
+    # Extract labels for the cluster with the maximum intensity value
+    positive_labels = [prop['label'] for prop, cluster in zip(properties, clusters) if cluster == max_intensity_cluster_index]
+
+    # Extract labels for the other cluster
+    negative_labels = [prop['label'] for prop, cluster in zip(properties, clusters) if cluster != max_intensity_cluster_index]
+
 
     # Initialize an empty mask for the separated positive labels
     separated_positive_labels = np.zeros_like(labels)
@@ -73,8 +80,6 @@ def classify_neurons(labels, properties, name, num_clusters=2, savefig=False, in
     # Use boolean indexing to assign positive labels directly
     separated_positive_labels[positive_mask] = labels[positive_mask]
 
-
-    
     if inspect_classified_masks:
         # Visualize positively clustered labels using napari
         spacing = (1.0, 1.0, 1.0)  # Adjust this based on your data
@@ -125,8 +130,8 @@ def classify_neurons(labels, properties, name, num_clusters=2, savefig=False, in
     plt.show()
 
     # Count positive and negative clusters
-    positive_count = np.sum(labels == 1)
-    negative_count = np.sum(labels == 0)
+    positive_count = len(positive_labels)
+    negative_count = len(negative_labels)
     print(new_name)
     print(f"Number of astrocytes in positive cluster: {positive_count}")
     print(f"Number of astrocytes in negative cluster: {negative_count}")
@@ -212,11 +217,15 @@ def measure_g4(properties):
 def measure_g4_voxels(mask_path, image_path, g4_channel=2):
     image = io.imread(image_path)
     masks = io.imread(mask_path)
+    print(image_path)
     print(np.shape(image))
     thresh = filters.threshold_otsu(image[:,:,:,g4_channel])
     print("thresh: ", thresh)
     binary_mask = image[:,:,:,g4_channel] > thresh
 
+    viewer = napari.view_labels(binary_mask, scale=spacing)
+    viewer.add_image(image, name="image", channel_axis=3, scale=spacing)
+    napari.run()
     regions = measure.regionprops(masks)
 
     proportions = []
@@ -261,7 +270,7 @@ def load_images_and_masks(image_folder, mask_folder):
 
     for image_path in image_files:
         mask_path = os.path.join(mask_folder, os.path.basename(image_path).replace('.lsm', '_mask.tif'))
-        if os.path.exists(mask_path) and all(substring not in image_path for substring in ['MIX2','MIX1']):
+        if os.path.exists(mask_path) and all(substring not in image_path for substring in ['MIX2','MIX1', 'MIX3']):
             if 'CONTRA' in image_path:
                 contra_pairs.append([image_path, mask_path])
                 contra_names.append(image_path)
