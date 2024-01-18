@@ -8,11 +8,11 @@ import glob
 
 spacing = ([0.3459, 0.3459, 0.9278])
 
-folder_path = "Images"
+folder_path = "images_sham"
 image_files = glob.glob(f"{folder_path}/*.lsm")
 
 
-model = StarDist3D(None, name='Hippocampus6.0', basedir='models')
+model = StarDist3D(None, name='Hippocampus7.0', basedir='models')
 
 def segment(img_path):
 
@@ -23,12 +23,12 @@ def segment(img_path):
     else:
         normalized = normalize(new_image[:,:,:,2])
 
-    labels, _ = model.predict_instances(normalized, n_tiles=(4,4,1))
+    labels, _ = model.predict_instances(normalized, n_tiles=(8,8,1))
 
     directory, filename = os.path.split(img_path)
     without_extension, extension = os.path.splitext(filename)
     mask_file_name = f"{without_extension}_mask.tif"
-    mask_path = os.path.join("masks", mask_file_name)
+    mask_path = os.path.join("masks_sham", mask_file_name)
 
     io.imsave(mask_path, labels)
 

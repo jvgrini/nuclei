@@ -98,7 +98,7 @@ conf = Config3D (
     # alternatively, try this:
 #    limit_gpu_memory(None, allow_growth=True)
 
-model = StarDist3D(conf, name='Hippocampus6.0', basedir='models')
+model = StarDist3D(conf, name='Hippocampus7.0', basedir='models')
 
 
 median_size = calculate_extents(Y, np.median)
