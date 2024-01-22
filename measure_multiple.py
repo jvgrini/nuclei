@@ -46,7 +46,7 @@ def classify_neurons2(labels, properties, name, num_clusters=3, savefig=False, i
         # Handle the case where the input name doesn't match the expected pattern
         print(f'Invalid name format: {name}')
         new_name = name
-    min_area_threshold = 500
+    min_area_threshold = 250
     labels = io.imread(labels)
      # Get labeled regions and their properties
     regions = measure.regionprops(labels)
@@ -90,39 +90,49 @@ def classify_neurons2(labels, properties, name, num_clusters=3, savefig=False, i
     cluster_1_values = intensity_values_reshaped[clusters == sorted_clusters[1]].flatten()
     cluster_2_values = intensity_values_reshaped[clusters == sorted_clusters[2]].flatten()
 
-    fig, ax = plt.subplots()
-    # Create a violin plot for all data points
-    sns.violinplot(y=np.array(intensity_values).flatten(), inner=None, color="lightblue", ax=ax, zorder=1)
-    # Plot boxplots for each cluster at the specified x-values
-    ax.boxplot([cluster_0_values], positions=[0], widths=0.2, patch_artist=True,
-           boxprops=dict(facecolor="seagreen", zorder=2, alpha=.7),
-           medianprops=dict(color="black"),
-           whiskerprops=dict(color="darkgreen"),
-           capprops=dict(color="darkgreen"))
+    # fig, ax = plt.subplots()
+    # # Create a violin plot for all data points
+    # sns.violinplot(y=np.array(intensity_values).flatten(), inner=None, color="lightblue", ax=ax, zorder=1)
+    # # Plot boxplots for each cluster at the specified x-values
+    # ax.boxplot([cluster_0_values], positions=[0], widths=0.2, patch_artist=True,
+    #        boxprops=dict(facecolor="seagreen", zorder=2, alpha=.7),
+    #        medianprops=dict(color="black"),
+    #        whiskerprops=dict(color="darkgreen"),
+    #        capprops=dict(color="darkgreen"))
 
-    ax.boxplot([cluster_1_values], positions=[0], widths=0.2, patch_artist=True,
-           boxprops=dict(facecolor="lightcoral", zorder=2, alpha=.7),
-           medianprops=dict(color="black"),
-           whiskerprops=dict(color="firebrick"),
-           capprops=dict(color="firebrick"))
-    ax.boxplot([cluster_2_values], positions=[0], widths=0.2, patch_artist=True,
-           boxprops=dict(facecolor="sandybrown", zorder=2, alpha=.7),
-           medianprops=dict(color="black"),
-           whiskerprops=dict(color="tan"),
-           capprops=dict(color="tan"))
-    plt.xticks([0],"")
-    plt.title(new_name)
-    plt.ylabel('NeuN intensity')
-    save_path = os.path.join("D:\\Users\\Jonas\\plots", f"{new_name}_neurons.pdf")
-    # plt.savefig(save_path)
+    # ax.boxplot([cluster_1_values], positions=[0], widths=0.2, patch_artist=True,
+    #        boxprops=dict(facecolor="lightcoral", zorder=2, alpha=.7),
+    #        medianprops=dict(color="black"),
+    #        whiskerprops=dict(color="firebrick"),
+    #        capprops=dict(color="firebrick"))
+    # ax.boxplot([cluster_2_values], positions=[0], widths=0.2, patch_artist=True,
+    #        boxprops=dict(facecolor="sandybrown", zorder=2, alpha=.7),
+    #        medianprops=dict(color="black"),
+    #        whiskerprops=dict(color="tan"),
+    #        capprops=dict(color="tan"))
+    # plt.xticks([0],"")
+    # plt.title(new_name)
+    # plt.ylabel('NeuN intensity')
+    # save_path = os.path.join("D:\\Users\\Jonas\\plots", f"{new_name}_neurons.pdf")
+    # # plt.savefig(save_path)
 
-    plt.show()
+    # plt.show()
+
+    if region_label != None:
+        cluster_masks = [cluster_mask * io.imread(region_label) for cluster_mask in separated_labels]
+        if inspect_classified_masks:
+            spacing = ([0.9278, 0.3459, 0.3459])  # Adjust this based on your data
+            viewer = napari.view_labels(labels, scale=spacing, ndisplay=3)
+            for i, cluster_mask in enumerate(cluster_masks):
+                viewer.add_labels(cluster_mask, name=f'Cluster {i + 1}', scale=spacing)
+            napari.run()
+        return cluster_masks
 
     # Count the number of neurons in each cluster
     for i, cluster_mask in enumerate(cluster_labels):
         print(f"Number of neurons in Cluster {i + 1}: {len(cluster_mask)}")
 
-    return [len(cluster_0_values), len(cluster_1_values), len(cluster_2_values)]
+    return separated_labels
 def classify_neurons(labels, properties, name, num_clusters=2, savefig=False, inspect_classified_masks = True):
 
     pattern = re.compile(r'Images\/(.*?)\s+G4')
@@ -226,7 +236,7 @@ def classify_neurons(labels, properties, name, num_clusters=2, savefig=False, in
 
     return labels
 
-def measure_nuc(image_path, label_path, read_images=False, read_masks = True):
+def measure_nuc(image_path, label_path, read_images=False, read_masks = False):
 
     if not read_images: 
         image = io.imread(image_path)
@@ -247,7 +257,7 @@ def measure_nuc(image_path, label_path, read_images=False, read_masks = True):
         region_label = prop.label
         region_area = prop.area
         region_mean_intensity = prop.mean_intensity
-        ch1_intensity, ch2_intensity, ch3_intensity, ch4_intensity = region_mean_intensity
+        ch1_intensity, ch2_intensity, ch3_intensity, ch4_intensity= region_mean_intensity
         label_properties.append({
             "label": region_label,
             "Area": region_area,
@@ -371,22 +381,25 @@ def load_images_and_masks(image_folder, mask_folder):
                 ipsii_names.append(image_path)
     return ipsii_pairs, contra_pairs, ipsii_names, contra_names
 
-def measure_properties(ipsii_pairs, contra_pairs):    
+def measure_properties(ipsii_pairs, contra_pairs, ipsii_names, contra_names):    
     contra_properties = []
     ipsii_properties = []
+    contra_names_i = []
+    ipsii_names_i = []
 
     for i in range(len(contra_pairs)):
         properties = measure_nuc(contra_pairs[i][0], contra_pairs[i][1])
         contra_properties.append(properties)
-        print(f"Type of properties: {type(properties)}")
+        contra_names_i.append(contra_names[i])
 
     for i in range(len(ipsii_pairs)):
         properties = measure_nuc(ipsii_pairs[i][0], ipsii_pairs[i][1])
         ipsii_properties.append(properties)
+        ipsii_names_i.append(ipsii_names[i])
 
     print(len(ipsii_properties))
     print(len(contra_properties))
-    return ipsii_properties, contra_properties
+    return ipsii_properties, contra_properties, ipsii_names_i, contra_names_i
 
 def load_images_masks_and_regionmasks(image_folder, mask_folder, mask_region_folder):
     image_files = glob(os.path.join(image_folder, '*.lsm'))
@@ -520,6 +533,29 @@ def load_images_masks_and_single_ROI(image_folder, mask_folder, mask_region_fold
         contra_pairs_region.append([contra_pairs[i][0], hippocampus])
 
     return ipsii_pairs_region, contra_pairs_region, ipsii_names, contra_names
+
+def load_images_masks_and_single_ROI_2(image_folder, mask_folder, mask_region_folder):
+    image_files = glob(os.path.join(image_folder, '*.lsm'))
+
+    contra_pairs = []
+    ipsii_pairs = []
+    contra_names = []
+    ipsii_names = []
+
+    for image_path in image_files:
+        mask_path = os.path.join(mask_folder, os.path.basename(image_path).replace('.lsm', '_mask.tif'))
+        region_mask_path = os.path.join(mask_region_folder, os.path.basename(image_path).replace('.lsm', '_mask_region.tif'))
+
+        if os.path.exists(mask_path) and os.path.exists(region_mask_path): #and all(substring not in image_path for substring in ['MIX2', 'MIX1']):
+            print(image_path)
+            if 'Contralateral' in image_path:
+                contra_pairs.append([image_path, mask_path, region_mask_path])
+                contra_names.append(image_path)
+            elif 'Ipsilateral' in image_path:
+                ipsii_pairs.append([image_path, mask_path, region_mask_path])
+                ipsii_names.append(image_path)
+
+    return ipsii_pairs, contra_pairs, ipsii_names, contra_names
     
 def measure_channel_regions(ipsii_properties, contra_properties):
     ipsii_g4 = []

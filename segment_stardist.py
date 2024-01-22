@@ -12,7 +12,7 @@ folder_path = "images_sham"
 image_files = glob.glob(f"{folder_path}/*.lsm")
 
 
-model = StarDist3D(None, name='Hippocampus7.0', basedir='models')
+model = StarDist3D(None, name='Hippocampus9.1', basedir='models')
 
 def segment(img_path):
 
