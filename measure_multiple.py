@@ -9,6 +9,8 @@ from sklearn.cluster import KMeans, AgglomerativeClustering
 from sklearn.mixture import GaussianMixture
 import re
 import napari
+from image import Image
+from nucleus import Nucleus
 
 spacing = ([0.3459, 0.3459, 0.9278])
 
@@ -269,6 +271,16 @@ def measure_nuc(image_path, label_path, read_images=False, read_masks = False):
 
     return label_properties
 
+def measure_nuc_class(image_path, label_path, read_images=False, read_masks = False):
+
+    image = Image("bilde3", image_path, label_path)
+
+    
+    return image
+    
+    
+
+
 def measure_cyto(image_path, label_path, read_images=False):
 
     if not read_images: 
@@ -388,13 +400,11 @@ def measure_properties(ipsii_pairs, contra_pairs, ipsii_names, contra_names):
     ipsii_names_i = []
 
     for i in range(len(contra_pairs)):
-        properties = measure_nuc(contra_pairs[i][0], contra_pairs[i][1])
-        contra_properties.append(properties)
+        ipsii_properties = measure_nuc_class(contra_pairs[i][0], contra_pairs[i][1])
         contra_names_i.append(contra_names[i])
 
     for i in range(len(ipsii_pairs)):
-        properties = measure_nuc(ipsii_pairs[i][0], ipsii_pairs[i][1])
-        ipsii_properties.append(properties)
+        ipsii_properties = measure_nuc_class(ipsii_pairs[i][0], ipsii_pairs[i][1])
         ipsii_names_i.append(ipsii_names[i])
 
     print(len(ipsii_properties))

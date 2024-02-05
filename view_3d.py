@@ -1,8 +1,9 @@
 import napari
 from skimage import io
 
-img = io.imread("images_HI\HI 1 Contralateral Mouse 8 Slide18 G4green NeuNpink CD86red 40x 4x4 technical replica 2.lsm")
-labels = io.imread("masks_HI\HI 1 Contralateral Mouse 8 Slide18 G4green NeuNpink CD86red 40x 4x4 technical replica 2_mask.tif")
+img = io.imread("Images/P9 10 MIX4 HI IPSII G4green IBA1pink CD68red 3x4 40x 1.lsm")
+labels = io.imread("masks/P9 10 MIX4 HI IPSII G4green IBA1pink CD68red 3x4 40x 1_mask.tif")
+region = io.imread("masks_regions_extended/P9 10 MIX4 HI IPSII G4green IBA1pink CD68red 3x4 40x 1_mask_regions.tif")
 spacing = ([0.9278, 0.3459, 0.3459])
 viewer = napari.view_image(
     img,
@@ -13,6 +14,11 @@ viewer = napari.view_image(
 viewer.add_labels(
     labels,
     name="Labels",
+    scale=spacing
+)
+viewer.add_labels(
+    region,
+    name="region",
     scale=spacing
 )
 
