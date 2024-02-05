@@ -2,7 +2,7 @@ from utils import getNucleiFromImage, getNucleiFromClusters
 from plot_functions import violinAndBoxplotClusters
 import numpy as np
 import napari
-from skimage import io, measure
+from skimage import io, measure, morphology
 from sklearn.cluster import KMeans
 import seaborn as sns
 from matplotlib import pyplot as plt
@@ -46,7 +46,7 @@ class Image:
             cluster2_fluo = [getattr(nucleus, channelToMeasure) for nucleus in self.clusterNuclei[2]]
             return cluster0_fluo, cluster1_fluo, cluster2_fluo
         
-    def classifyCells(self, numClusters=3, applyROI=True, minArea=250, channel=2, inspect_classified_masks = False, plot_selectionChannel = False):
+    def classifyCells(self, numClusters=3, applyROI=True, minArea=250, channel=1, inspect_classified_masks = False, plot_selectionChannel = False):
         channelToMeasure = f"ch{channel}Intensity"   
         intensityList = [getattr(nucleus, channelToMeasure) for nucleus in self.nuclei]
         intensity_values_reshaped = np.array(intensityList).reshape(-1, 1)
@@ -78,15 +78,23 @@ class Image:
             violinAndBoxplotClusters(intensityList, cluster_0_values, cluster_1_values, cluster_2_values)
         return separatedMasks
     def measureBackground(self):
-        backgroundMask = ~self.masks.astype(bool)
-        backgroundLayer = measure.label(backgroundMask.astype(np.uint8))
-        unified_background = np.ones_like(backgroundLayer)
-        
-        properties = measure.regionprops(unified_background, self.image)
+        nucleiMask = morphology.dilation(self.masks, morphology.ball(5))
+        nucleiMask = nucleiMask.astype(bool)
+    
+        # Create a background mask where nuclei are labeled as 0 and background as 1
+        backgroundMask = np.logical_not(nucleiMask)
+
+        # spacing = ([0.9278, 0.3459, 0.3459])
+        # viewer = napari.view_image(self.image, channel_axis=3, scale=spacing)
+        # viewer.add_labels(backgroundMask, name="B", scale=spacing)
+
+        # napari.run()
+        properties = measure.regionprops(backgroundMask.astype(np.uint8), self.image)
         for prop in properties:
             intensities = prop.mean_intensity
-        intensity = intensities[0]
+        intensity = intensities[2]
         print(f"Mean background intensity: {intensity}")
+        return intensity
         
         
     def viewImage(self):

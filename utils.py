@@ -52,7 +52,7 @@ def match_images_and_masks(image_folder, mask_folder, roi_folder=None):
     for image_path in images:
         mask_path = os.path.join(mask_folder, os.path.basename(image_path).replace('.lsm', '_mask.tif'))
         if roi_folder != None:
-            roi_path = os.path.join(roi_folder, os.path.basename(image_path).replace('.lsm', '_mask_regions.tif'))
+            roi_path = os.path.join(roi_folder, os.path.basename(image_path).replace('.lsm', '_mask_region.tif'))
         if os.path.exists(mask_path) and os.path.exists(roi_path):
             image_files.append([image_path, mask_path, roi_path])
     return image_files

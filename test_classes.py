@@ -2,28 +2,46 @@ from utils import match_images_and_masks
 from image import Image
 import os
 import numpy as np
+from matplotlib import pyplot as plt
 
-image_folder = 'images_mix4'
-mask_folder = 'masks'
-roi_folder = 'masks_regions_extended'
+image_folder = 'images_HI'
+mask_folder = 'masks_HI'
+roi_folder = 'region_masks_extended'
+
+sham_image_folder ="images_sham"
+sham_mask_folder = "masks_sham"
+
+sham_images = match_images_and_masks(sham_image_folder, sham_mask_folder, roi_folder)
 
 images = match_images_and_masks(image_folder, mask_folder, roi_folder)
-
+print(len(images))
 image_objects = []
 for image_info in images:
     name = os.path.basename(image_info[0])  
     image_obj = Image(name, image_info[0], image_info[1], image_info[2])
     image_objects.append(image_obj)
+for image_info in sham_images:
+    name = os.path.basename(image_info[0])  
+    image_obj = Image(name, image_info[0], image_info[1], image_info[2])
+    image_objects.append(image_obj)
 
 cluster_values = []
+mean_background = []
+mean_signal = []
 for object in image_objects:
     print(object.name, len(object.nuclei))
-    print(object.getMeanFluorescenceChannel(channel=2))
+    mean_signal.append(object.getMeanFluorescenceChannel(channel=3))
     object.clusterMasks = object.classifyCells(inspect_classified_masks=False, plot_selectionChannel=False)
     object.clusterNuclei = object.measureNucleiInRegion(object.roi, object.clusterMasks)
-    object.measureBackground()
+    background = object.measureBackground()
+    mean_background.append(background)
     print('Non neurons: ',len(object.clusterNuclei[0]))
     print('Immature neurons: ',len(object.clusterNuclei[1]))
     print('Mature neurons: ',len(object.clusterNuclei[2]))
-    fluo0, fluo1, fluo2 = object.getMeanFluorescenceChannel(2, clusters=True)
+    fluo0, fluo1, fluo2 = object.getMeanFluorescenceChannel(3, clusters=True)
     print(np.mean(fluo0), np.mean(fluo1), np.mean(fluo2))
+
+plt.scatter(mean_background, mean_signal)
+plt.xlabel("Mean background")
+plt.ylabel("Mean signal")
+plt.show()
