@@ -2,7 +2,7 @@ from utils import getNucleiFromImage, getNucleiFromClusters
 from plot_functions import violinAndBoxplotClusters
 import numpy as np
 import napari
-from skimage import io
+from skimage import io, measure
 from sklearn.cluster import KMeans
 import seaborn as sns
 from matplotlib import pyplot as plt
@@ -33,13 +33,19 @@ class Image:
         nucleiMasks = self.getNucleiWithinRegion(roi_mask, mask, clusterMasks=True)
         nuclei = getNucleiFromClusters(self.image, nucleiMasks)
         ## do operation..
-        self.clusterNuclei = nuclei
+        return nuclei
         
-    def getMeanFluorescenceChannel(self, channel):
-        channelToMeasure = f"ch{channel}Intensity"    
-        intensityList = [getattr(nucleus, channelToMeasure) for nucleus in self.nuclei]
-        return np.mean(intensityList)
-    
+    def getMeanFluorescenceChannel(self, channel, clusters=False):
+        channelToMeasure = f"ch{channel}Intensity"
+        if not clusters:    
+            intensityList = [getattr(nucleus, channelToMeasure) for nucleus in self.nuclei]
+            return np.mean(intensityList)
+        if clusters:
+            cluster0_fluo = [getattr(nucleus, channelToMeasure) for nucleus in self.clusterNuclei[0]]
+            cluster1_fluo = [getattr(nucleus, channelToMeasure) for nucleus in self.clusterNuclei[1]]
+            cluster2_fluo = [getattr(nucleus, channelToMeasure) for nucleus in self.clusterNuclei[2]]
+            return cluster0_fluo, cluster1_fluo, cluster2_fluo
+        
     def classifyCells(self, numClusters=3, applyROI=True, minArea=250, channel=2, inspect_classified_masks = False, plot_selectionChannel = False):
         channelToMeasure = f"ch{channel}Intensity"   
         intensityList = [getattr(nucleus, channelToMeasure) for nucleus in self.nuclei]
@@ -71,6 +77,17 @@ class Image:
 
             violinAndBoxplotClusters(intensityList, cluster_0_values, cluster_1_values, cluster_2_values)
         return separatedMasks
+    def measureBackground(self):
+        backgroundMask = ~self.masks.astype(bool)
+        backgroundLayer = measure.label(backgroundMask.astype(np.uint8))
+        unified_background = np.ones_like(backgroundLayer)
+        
+        properties = measure.regionprops(unified_background, self.image)
+        for prop in properties:
+            intensities = prop.mean_intensity
+        intensity = intensities[0]
+        print(f"Mean background intensity: {intensity}")
+        
         
     def viewImage(self):
         spacing = ([0.9278, 0.3459, 0.3459])
