@@ -4,14 +4,14 @@ import os
 import numpy as np
 from matplotlib import pyplot as plt
 
-image_folder = 'images_HI'
-mask_folder = 'masks_HI'
-roi_folder = 'region_masks_extended'
+image_folder = 'images_mix4'
+mask_folder = 'masks'
+roi_folder = 'masks_regions_extended'
 
-sham_image_folder ="images_sham"
-sham_mask_folder = "masks_sham"
+# sham_image_folder ="images_sham"
+# sham_mask_folder = "masks_sham"
 
-sham_images = match_images_and_masks(sham_image_folder, sham_mask_folder, roi_folder)
+# sham_images = match_images_and_masks(sham_image_folder, sham_mask_folder, roi_folder)
 
 images = match_images_and_masks(image_folder, mask_folder, roi_folder)
 print(len(images))
@@ -20,10 +20,10 @@ for image_info in images:
     name = os.path.basename(image_info[0])  
     image_obj = Image(name, image_info[0], image_info[1], image_info[2])
     image_objects.append(image_obj)
-for image_info in sham_images:
-    name = os.path.basename(image_info[0])  
-    image_obj = Image(name, image_info[0], image_info[1], image_info[2])
-    image_objects.append(image_obj)
+# for image_info in sham_images:
+#     name = os.path.basename(image_info[0])  
+#     image_obj = Image(name, image_info[0], image_info[1], image_info[2])
+#     image_objects.append(image_obj)
 
 cluster_values = []
 mean_background = []
@@ -32,7 +32,11 @@ for object in image_objects:
     print(object.name, len(object.nuclei))
     mean_signal.append(object.getMeanFluorescenceChannel(channel=3))
     object.clusterMasks = object.classifyCells(inspect_classified_masks=False, plot_selectionChannel=False)
-    object.clusterNuclei = object.measureNucleiInRegion(object.roi, object.clusterMasks)
+    object.clusterNuclei = object.measureClusterNucleiInImage(object.clusterMasks)
+    object.ca1Clusters = object.measureClusterNucleiInRegion(object.roi[0])
+    object.ca3Clusters = object.measureClusterNucleiInRegion(object.roi[1])
+    object.dgClusters = object.measureClusterNucleiInRegion(object.roi[2])
+    print(len(object.ca1Clusters[0]))
     background = object.measureBackground()
     mean_background.append(background)
     print('Non neurons: ',len(object.clusterNuclei[0]))

@@ -16,23 +16,24 @@ class Image:
         self.roi= io.imread(roi_mask)
         self.clusterMasks = None
         self.clusterNuclei = None
+        self.dgClusters = None
+        self.ca1Clusters = None
+        self.ca3Clusters = None
                 
-    def getNuclei(self, nucleiNumber):
-        for i in range(len(self.nuclei)):
-            if (nucleiNumber == self.nuclei[i].label):
-                return self.nuclei[i]
-    
-    def getNucleiWithinRegion(self, regionMask, mask, clusterMasks = False):
-        if clusterMasks:
-            nuclei_in_region = [clusterMask * regionMask for clusterMask in mask]
-        else:
-            nuclei_in_region = regionMask * mask
+    def getNucleiWithinRegion(self, regionMask, mask):
+        
+        nuclei_in_region = regionMask * mask
+        
         return nuclei_in_region
         
-    def measureNucleiInRegion(self, roi_mask, mask):
-        nucleiMasks = self.getNucleiWithinRegion(roi_mask, mask, clusterMasks=True)
-        nuclei = getNucleiFromClusters(self.image, nucleiMasks)
+    def measureClusterNucleiInImage(self, clusterList):
+        
+        nuclei = getNucleiFromClusters(self.image, clusterList)
         ## do operation..
+        return nuclei
+    def measureClusterNucleiInRegion(self, roi):
+        masksInRegion = roi * self.clusterMasks
+        nuclei = getNucleiFromClusters(self.image, masksInRegion)
         return nuclei
         
     def getMeanFluorescenceChannel(self, channel, clusters=False):
@@ -81,7 +82,6 @@ class Image:
         nucleiMask = morphology.dilation(self.masks, morphology.ball(5))
         nucleiMask = nucleiMask.astype(bool)
     
-        # Create a background mask where nuclei are labeled as 0 and background as 1
         backgroundMask = np.logical_not(nucleiMask)
 
         # spacing = ([0.9278, 0.3459, 0.3459])
