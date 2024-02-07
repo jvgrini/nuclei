@@ -31,8 +31,10 @@ class Image:
         nuclei = getNucleiFromClusters(self.image, clusterList)
         ## do operation..
         return nuclei
-    def measureClusterNucleiInRegion(self, roi):
-        masksInRegion = roi * self.clusterMasks
+    def measureClusterNucleiInRegion(self, roi, region):
+        labeled_regions = measure.label(roi)
+        binary_mask = (labeled_regions == region)
+        masksInRegion = binary_mask * self.clusterMasks
         nuclei = getNucleiFromClusters(self.image, masksInRegion)
         return nuclei
         

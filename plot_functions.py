@@ -1,6 +1,7 @@
 import seaborn as sns
 from matplotlib import pyplot as plt
 import numpy as np
+import pandas as pd
 
 def violinAndBoxplotClusters(intensityList, cluster_0_values, cluster_1_values, cluster_2_values):
     fig, ax = plt.subplots()
@@ -27,22 +28,26 @@ def violinAndBoxplotClusters(intensityList, cluster_0_values, cluster_1_values, 
     plt.ylabel('NeuN intensity')
     plt.show()
     
-def plotNeuronsRegions(ca1Clusters, ca3Clusters, dgClusters):
+def plotNeuronsRegions(imageObjects):
     
-    ca1_data = [[len(cluster) for cluster in region] for region in ca1Clusters]
-    ca3_data = [[len(cluster) for cluster in region] for region in ca3Clusters]
-    dg_data = [[len(cluster) for cluster in region] for region in dgClusters]
+    data = {'Region': [], 'Class': [], 'Count': []}
+    class_names = ['Mature neurons', 'Immature neurons', 'Non neurons']
+    for obj in imageObjects:
+        for region, clusters in zip(['CA1', 'CA3', 'DG'], [obj.ca1Clusters, obj.ca3Clusters, obj.dgClusters]):
+            for i, class_nuclei in enumerate(clusters):
+                class_name = class_names[i]
+                class_count = len(class_nuclei)
+                data['Region'].extend([region] * class_count)
+                data['Class'].extend([class_name] * class_count)
+                data['Count'].extend([class_count] * class_count)
     
-    print(ca1_data)
+    df = pd.DataFrame(data)
     
-    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
-    labels = ['Neurons', 'Immature Neurons', 'Non-Neurons']
-    
-    for i, data in enumerate([ca1_data, ca3_data, dg_data]):
-        axes[i].boxplot(data)
-        axes[i].set_title(['CA1', 'CA3', 'DG'][i])
-        axes[i].set_ylabel('Number of Nuclei')
-        axes[i].set_xticklabels(labels)
-    
-    plt.tight_layout()
+    plt.figure(figsize=(10, 6))
+    sns.boxplot(data=df, x='Region', y='Count', hue='Class')
+    plt.title('Number of Nuclei in Each Class for Each Region')
+    plt.xlabel('Region')
+    plt.ylabel('Number of Nuclei')
+    plt.grid(True)
     plt.show()
+

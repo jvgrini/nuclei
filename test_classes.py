@@ -32,11 +32,11 @@ mean_signal = []
 for object in image_objects:
     print(object.name, len(object.nuclei))
     mean_signal.append(object.getMeanFluorescenceChannel(channel=3))
-    object.clusterMasks = object.classifyCells(inspect_classified_masks=True, plot_selectionChannel=False)
+    object.clusterMasks = object.classifyCells(inspect_classified_masks=False, plot_selectionChannel=False)
     object.clusterNuclei = object.measureClusterNucleiInImage(object.clusterMasks)
-    object.ca1Clusters = object.measureClusterNucleiInRegion(object.roi[0])
-    object.ca3Clusters = object.measureClusterNucleiInRegion(object.roi[1])
-    object.dgClusters = object.measureClusterNucleiInRegion(object.roi[2])
+    object.ca1Clusters = object.measureClusterNucleiInRegion(object.roi, region=0)
+    object.ca3Clusters = object.measureClusterNucleiInRegion(object.roi, region=1)
+    object.dgClusters = object.measureClusterNucleiInRegion(object.roi, region =2)
     print(len(object.ca1Clusters[0]))
     #background = object.measureBackground()
     #mean_background.append(background)
@@ -46,10 +46,5 @@ for object in image_objects:
     fluo0, fluo1, fluo2 = object.getMeanFluorescenceChannel(3, clusters=True)
     print(np.mean(fluo0), np.mean(fluo1), np.mean(fluo2))
 
-ca1Clusters = [object.ca1Clusters for object in image_objects]
-ca3Clusters = [object.ca3Clusters for object in image_objects]
-dgClusters = [object.dgClusters for object in image_objects]
 
-print(len(ca1Clusters[0]), len(ca1Clusters[1]))
-
-plotNeuronsRegions(ca1Clusters, ca3Clusters, dgClusters)
+plotNeuronsRegions(image_objects)
