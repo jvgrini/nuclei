@@ -10,6 +10,7 @@ from matplotlib import pyplot as plt
 class Image:
     def __init__(self, name, imageFilepath, maskFilepath, roi_mask):
         self.name = name
+        self.scale = ([0.9278, 0.3459, 0.3459])
         self.nuclei = getNucleiFromImage(imageFilepath, maskFilepath)
         self.image = io.imread(imageFilepath)
         self.masks = io.imread(maskFilepath)
@@ -31,9 +32,14 @@ class Image:
         nuclei = getNucleiFromClusters(self.image, clusterList)
         ## do operation..
         return nuclei
-    def measureClusterNucleiInRegion(self, roi, region):
+    def measureClusterNucleiInRegion(self, roi, region, inspect_regions=False):
         labeled_regions = measure.label(roi)
         binary_mask = (labeled_regions == region)
+        if inspect_regions:
+            viewer= napari.view_image(self.image, scale=self.scale, channel_axis=3)
+            viewer.add_labels(binary_mask, scale=self.scale)
+            napari.run()
+        
         masksInRegion = binary_mask * self.clusterMasks
         nuclei = getNucleiFromClusters(self.image, masksInRegion)
         return nuclei
