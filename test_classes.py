@@ -5,9 +5,9 @@ import os
 import numpy as np
 from matplotlib import pyplot as plt
 
-image_folder = 'images_mix4'
-mask_folder = 'masks'
-roi_folder = 'masks_regions_extended'
+image_folder = 'images_HI_contra'
+mask_folder = 'masks_HI'
+roi_folder = 'brain_region_masks_extended'
 
 # sham_image_folder ="images_sham"
 # sham_mask_folder = "masks_sham"
@@ -34,10 +34,10 @@ for object in image_objects:
     mean_signal.append(object.getMeanFluorescenceChannel(channel=3))
     object.clusterMasks = object.classifyCells(inspect_classified_masks=False, plot_selectionChannel=False)
     object.clusterNuclei = object.measureClusterNucleiInImage(object.clusterMasks)
-    object.ca1Clusters = object.measureClusterNucleiInRegion(object.roi, region=1)
-    object.dgClusters = object.measureClusterNucleiInRegion(object.roi, region =2)
+    object.ca1Clusters = object.measureClusterNucleiInRegion(object.roi, region=1, inspect_regions=False)
+    object.dgClusters = object.measureClusterNucleiInRegion(object.roi, region =2, inspect_regions=False)
     object.ca3Clusters = object.measureClusterNucleiInRegion(object.roi, region=3)
-    print(len(object.ca1Clusters[0]))
+    print(len(object.dgClusters[0]), len(object.dgClusters[1]), len(object.dgClusters[2]))
     #background = object.measureBackground()
     #mean_background.append(background)
     print('Non neurons: ',len(object.clusterNuclei[0]))
@@ -47,4 +47,4 @@ for object in image_objects:
     print(np.mean(fluo0), np.mean(fluo1), np.mean(fluo2))
 
 
-plotNeuronsRegions(image_objects)
+plotNeuronsRegions(image_objects, title="HI contralateral")

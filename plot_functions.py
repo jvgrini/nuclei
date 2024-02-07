@@ -28,10 +28,11 @@ def violinAndBoxplotClusters(intensityList, cluster_0_values, cluster_1_values, 
     plt.ylabel('NeuN intensity')
     plt.show()
     
-def plotNeuronsRegions(imageObjects):
+def plotNeuronsRegions(imageObjects, title=""):
+    
     
     data = {'Region': [], 'Class': [], 'Count': []}
-    class_names = ['Mature neurons', 'Immature neurons', 'Non neurons']
+    class_names = ['Non neurons', 'Immature neurons', 'Mature neurons']
     for obj in imageObjects:
         for region, clusters in zip(['CA1', 'CA3', 'DG'], [obj.ca1Clusters, obj.ca3Clusters, obj.dgClusters]):
             for i, class_nuclei in enumerate(clusters):
@@ -45,9 +46,12 @@ def plotNeuronsRegions(imageObjects):
     
     plt.figure(figsize=(10, 6))
     sns.boxplot(data=df, x='Region', y='Count', hue='Class')
-    plt.title('Number of Nuclei in Each Class for Each Region')
+    #sns.stripplot(data=df, x='Region', y='Count', hue='Class', dodge=True, jitter=True, marker='o', alpha=0.5, color='black')
+    plt.title(title)
     plt.xlabel('Region')
     plt.ylabel('Number of Nuclei')
     plt.grid(True)
+  
+    plt.legend()
     plt.show()
 

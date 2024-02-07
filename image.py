@@ -35,12 +35,14 @@ class Image:
     def measureClusterNucleiInRegion(self, roi, region, inspect_regions=False):
         labeled_regions = measure.label(roi)
         binary_mask = (labeled_regions == region)
+        masksInRegion = binary_mask * self.clusterMasks
         if inspect_regions:
             viewer= napari.view_image(self.image, scale=self.scale, channel_axis=3)
             viewer.add_labels(binary_mask, scale=self.scale)
+            viewer.add_labels(masksInRegion, scale=self.scale)
             napari.run()
         
-        masksInRegion = binary_mask * self.clusterMasks
+        
         nuclei = getNucleiFromClusters(self.image, masksInRegion)
         return nuclei
         
@@ -55,7 +57,7 @@ class Image:
             cluster2_fluo = [getattr(nucleus, channelToMeasure) for nucleus in self.clusterNuclei[2]]
             return cluster0_fluo, cluster1_fluo, cluster2_fluo
         
-    def classifyCells(self, numClusters=3, applyROI=True, minArea=250, channel=2, inspect_classified_masks = False, plot_selectionChannel = False):
+    def classifyCells(self, numClusters=3, applyROI=True, minArea=250, channel=1, inspect_classified_masks = False, plot_selectionChannel = False):
         channelToMeasure = f"ch{channel}Intensity"   
         intensityList = [getattr(nucleus, channelToMeasure) for nucleus in self.nuclei]
         intensity_values_reshaped = np.array(intensityList).reshape(-1, 1)
