@@ -47,7 +47,7 @@ class Image:
             cluster2_fluo = [getattr(nucleus, channelToMeasure) for nucleus in self.clusterNuclei[2]]
             return cluster0_fluo, cluster1_fluo, cluster2_fluo
         
-    def classifyCells(self, numClusters=3, applyROI=True, minArea=250, channel=1, inspect_classified_masks = False, plot_selectionChannel = False):
+    def classifyCells(self, numClusters=3, applyROI=True, minArea=250, channel=2, inspect_classified_masks = False, plot_selectionChannel = False):
         channelToMeasure = f"ch{channel}Intensity"   
         intensityList = [getattr(nucleus, channelToMeasure) for nucleus in self.nuclei]
         intensity_values_reshaped = np.array(intensityList).reshape(-1, 1)

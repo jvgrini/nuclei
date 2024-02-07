@@ -26,3 +26,23 @@ def violinAndBoxplotClusters(intensityList, cluster_0_values, cluster_1_values, 
     plt.xticks([0],"")
     plt.ylabel('NeuN intensity')
     plt.show()
+    
+def plotNeuronsRegions(ca1Clusters, ca3Clusters, dgClusters):
+    
+    ca1_data = [[len(cluster) for cluster in region] for region in ca1Clusters]
+    ca3_data = [[len(cluster) for cluster in region] for region in ca3Clusters]
+    dg_data = [[len(cluster) for cluster in region] for region in dgClusters]
+    
+    print(ca1_data)
+    
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+    labels = ['Neurons', 'Immature Neurons', 'Non-Neurons']
+    
+    for i, data in enumerate([ca1_data, ca3_data, dg_data]):
+        axes[i].boxplot(data)
+        axes[i].set_title(['CA1', 'CA3', 'DG'][i])
+        axes[i].set_ylabel('Number of Nuclei')
+        axes[i].set_xticklabels(labels)
+    
+    plt.tight_layout()
+    plt.show()
