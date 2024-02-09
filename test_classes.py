@@ -5,8 +5,8 @@ import os
 import numpy as np
 from matplotlib import pyplot as plt
 
-image_folder = 'images_HI_contra'
-mask_folder = 'masks_HI'
+image_folder = 'images_sham'
+mask_folder = 'masks_sham'
 roi_folder = 'brain_region_masks_extended'
 
 # sham_image_folder ="images_sham"
@@ -47,4 +47,4 @@ for object in image_objects:
     print(np.mean(fluo0), np.mean(fluo1), np.mean(fluo2))
 
 
-plotNeuronsRegions(image_objects, title="HI contralateral")
+plotNeuronsRegions(image_objects, title="Sham")
