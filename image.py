@@ -20,6 +20,9 @@ class Image:
         self.dgClusters = None
         self.ca1Clusters = None
         self.ca3Clusters = None
+        self.dgDensity = None
+        self.ca1Density = None
+        self.ca3Density = None
                 
     def getNucleiWithinRegion(self, regionMask, mask):
         
@@ -88,6 +91,18 @@ class Image:
 
             violinAndBoxplotClusters(intensityList, cluster_0_values, cluster_1_values, cluster_2_values)
         return separatedMasks
+    
+    def getDensity(self, roi, region):
+        labeled_regions = measure.label(roi)
+        binary_mask = (labeled_regions == region)
+        masksInRegion = binary_mask * self.clusterMasks
+        volume = np.sum(binary_mask)
+
+        clusters = getNucleiFromClusters(self.image, masksInRegion)
+        density = [len(nuclei) / volume for nuclei in clusters]
+        print("Density: ", density)
+        return density
+
     def measureBackground(self):
         nucleiMask = morphology.dilation(self.masks, morphology.ball(5))
         nucleiMask = nucleiMask.astype(bool)

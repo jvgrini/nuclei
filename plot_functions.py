@@ -55,3 +55,71 @@ def plotNeuronsRegions(imageObjects, title=""):
     plt.legend()
     plt.show()
 
+def plotNeuronsRegionsbyRegion(contra, ipsi, sham, title=""):
+    regions = ['CA1', 'CA3', 'DG']
+    clusters = ['ca1Clusters', 'ca3Clusters', 'dgClusters']
+    conditions = [sham, contra, ipsi]
+
+    for i, region in enumerate(regions):
+        plt.figure()
+        plt.title(f'{title} - {region}')
+        plt.xlabel('Clusters')
+        plt.ylabel('Number of Neurons')
+
+        # Creating a DataFrame for Seaborn
+        data = []
+        for condition, label in zip(conditions, ['Sham', 'Contra', 'Ipsi']):
+            for obj in condition:
+                for idx, cluster in enumerate(getattr(obj, clusters[i]), start=1):
+                    if idx == 1:
+                        cluster_label = "non neurons"
+                    elif idx == 2:
+                        cluster_label = "immature neurons"
+                    elif idx == 3:
+                        cluster_label = "mature neurons"
+                    else:
+                        cluster_label = f'Cluster {idx}'
+                    data.append((cluster_label, len(cluster), label))
+        
+        df = pd.DataFrame(data, columns=['Cluster', 'Neurons', 'Condition'])
+
+        # Creating boxplot using Seaborn
+        sns.boxplot(x='Cluster', y='Neurons', hue='Condition', data=df, palette='Set3')
+
+        plt.legend(title='Condition')
+        plt.tight_layout()
+        plt.show()
+def plotRegionNeuronsDensity(contra, ipsi, sham, title=""):
+    regions = ['CA1', 'CA3', 'DG']
+    densities_props = ['ca1Density', 'ca3Density', 'dgDensity']
+    conditions = [sham, contra, ipsi]
+
+    for i, region in enumerate(regions):
+        plt.figure()
+        plt.title(f'{title} - {region}')
+        plt.xlabel('Clusters')
+        plt.ylabel('Number of Neurons')
+
+        # Creating a DataFrame for Seaborn
+        data = []
+        for condition, label in zip(conditions, ['Sham', 'Contra', 'Ipsi']):
+            for obj in condition:
+                for idx, density in enumerate(getattr(obj, densities_props[i]), start=1):
+                    if idx == 1:
+                        cluster_label = "non neurons"
+                    elif idx == 2:
+                        cluster_label = "immature neurons"
+                    elif idx == 3:
+                        cluster_label = "mature neurons"
+                    else:
+                        cluster_label = f'Cluster {idx}'
+                    data.append((cluster_label, density, label))
+        
+        df = pd.DataFrame(data, columns=['Cluster', 'Neurons', 'Condition'])
+
+        # Creating boxplot using Seaborn
+        sns.boxplot(x='Cluster', y='Neurons', hue='Condition', data=df, palette='Set3')
+
+        plt.legend(title='Condition')
+        plt.tight_layout()
+        plt.show()
