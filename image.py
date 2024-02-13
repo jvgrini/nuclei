@@ -73,7 +73,7 @@ class Image:
         separatedMasks = [np.zeros_like(self.masks) for _ in range(numClusters)]
         for i, cluster_mask in enumerate(cluster_labels):
             separatedMasks[i][np.isin(self.masks, cluster_mask)] = self.masks[np.isin(self.masks, cluster_mask)]
-        
+
         if inspect_classified_masks:
             # Visualize clustered labels using napari
             spacing = ([0.9278, 0.3459, 0.3459])
@@ -84,11 +84,15 @@ class Image:
                 viewer.add_labels(cluster_mask, name=f'Cluster {i + 1}', scale=spacing)
             napari.run()
         
-        if plot_selectionChannel:
-            cluster_0_values = intensity_values_reshaped[clusters == sorted_clusters[0]].flatten()
-            cluster_1_values = intensity_values_reshaped[clusters == sorted_clusters[1]].flatten()
-            cluster_2_values = intensity_values_reshaped[clusters == sorted_clusters[2]].flatten()
+        cluster_0_values = intensity_values_reshaped[clusters == sorted_clusters[0]].flatten()
+        cluster_1_values = intensity_values_reshaped[clusters == sorted_clusters[1]].flatten()
+        cluster_2_values = intensity_values_reshaped[clusters == sorted_clusters[2]].flatten()
 
+        print(f"Cluster 0 median: {np.median(cluster_0_values)}")
+        print(f"Cluster 1 median: {np.median(cluster_1_values)}")
+        print(f"Cluster 2 median: {np.median(cluster_2_values)}")
+
+        if plot_selectionChannel:
             violinAndBoxplotClusters(intensityList, cluster_0_values, cluster_1_values, cluster_2_values)
         return separatedMasks
     
@@ -96,10 +100,10 @@ class Image:
         labeled_regions = measure.label(roi)
         binary_mask = (labeled_regions == region)
         masksInRegion = binary_mask * self.clusterMasks
-        volume = np.sum(binary_mask)
+        volume = np.sum(binary_mask) * np.prod(self.scale)
 
         clusters = getNucleiFromClusters(self.image, masksInRegion)
-        density = [len(nuclei) / volume for nuclei in clusters]
+        density = [((len(nuclei) / volume) * 100**3) for nuclei in clusters]
         print("Density: ", density)
         return density
 

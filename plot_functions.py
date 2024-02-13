@@ -2,6 +2,8 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 import numpy as np
 import pandas as pd
+from scipy.stats import f_oneway
+from statsmodels.stats.multicomp import pairwise_tukeyhsd, MultiComparison
 
 def violinAndBoxplotClusters(intensityList, cluster_0_values, cluster_1_values, cluster_2_values):
     fig, ax = plt.subplots()
@@ -117,9 +119,23 @@ def plotRegionNeuronsDensity(contra, ipsi, sham, title=""):
         
         df = pd.DataFrame(data, columns=['Cluster', 'Neurons', 'Condition'])
 
+        anova_results = {}
+        tukey_results = {}
+        for cluster_label in df['Cluster'].unique():
+            cluster_data = [df[(df['Cluster'] == cluster_label) & (df['Condition'] == cond)]['Neurons'] for cond in df['Condition'].unique()]
+            anova_results[cluster_label] = f_oneway(*cluster_data)
+        
+        print(f"ANOVA and Tukey's HSD results for {region}:")
+        print(f"ANOVA results: {anova_results}")
+
+        for cluster_label in df['Cluster'].unique():  
+            # Perform Tukey's HSD test for each class of neuron
+            mc = MultiComparison(df[df['Cluster'] == cluster_label]['Neurons'], df[df['Cluster'] == cluster_label]['Condition'])
+            tukey_results[cluster_label] = mc.tukeyhsd()
+            print(f"Tukey's HSD results for {cluster_label} in {region}:\n{tukey_results[cluster_label]}")
         # Creating boxplot using Seaborn
         sns.boxplot(x='Cluster', y='Neurons', hue='Condition', data=df, palette='Set3')
-
+        plt.ylabel("Neurons / 100 \u03bcm^3")
         plt.legend(title='Condition')
         plt.tight_layout()
         plt.show()
