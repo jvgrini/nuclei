@@ -68,33 +68,41 @@ class Image:
         clusters = kmeans.fit_predict(intensity_values_reshaped)
     
         sorted_clusters = np.argsort(kmeans.cluster_centers_.flatten())
-        cluster_labels = [np.array([prop.label for prop, cluster in zip(self.nuclei, clusters) if cluster == i])
-                      for i in sorted_clusters]
-        separatedMasks = [np.zeros_like(self.masks) for _ in range(numClusters)]
-        for i, cluster_mask in enumerate(cluster_labels):
-            separatedMasks[i][np.isin(self.masks, cluster_mask)] = self.masks[np.isin(self.masks, cluster_mask)]
+        
+        print("Unique Cluster Labels:", np.unique(clusters))
+        print("Sorted Cluster Centers:", sorted_clusters)
 
+        for nucleus, cluster_label in zip(self.nuclei, clusters):
+            if cluster_label == sorted_clusters[1]:  # Check for neunPositiveLow
+                nucleus.cellType = 'neunPositiveLow'
+            elif cluster_label == sorted_clusters[2]:  # Check for neunPositive
+                nucleus.cellType = 'neunPositive'
+            print(f"Nucleus cellType: {nucleus.cellType}")
         if inspect_classified_masks:
             # Visualize clustered labels using napari
             spacing = ([0.9278, 0.3459, 0.3459])
             viewer = napari.view_image(self.image, scale=spacing, ndisplay=2, channel_axis=3)
 
-            # Add clustered labels to the viewer
+            cluster_labels = [np.array([prop.label for prop, cluster in zip(self.nuclei, clusters) if cluster == i])
+                      for i in sorted_clusters]
+            separatedMasks = [np.zeros_like(self.masks) for _ in range(numClusters)]
+            for i, cluster_mask in enumerate(cluster_labels):
+                separatedMasks[i][np.isin(self.masks, cluster_mask)] = self.masks[np.isin(self.masks, cluster_mask)]
             for i, cluster_mask in enumerate(separatedMasks):
                 viewer.add_labels(cluster_mask, name=f'Cluster {i + 1}', scale=spacing)
+
             napari.run()
         
-        cluster_0_values = intensity_values_reshaped[clusters == sorted_clusters[0]].flatten()
-        cluster_1_values = intensity_values_reshaped[clusters == sorted_clusters[1]].flatten()
-        cluster_2_values = intensity_values_reshaped[clusters == sorted_clusters[2]].flatten()
-
-        print(f"Cluster 0 median: {np.median(cluster_0_values)}")
-        print(f"Cluster 1 median: {np.median(cluster_1_values)}")
-        print(f"Cluster 2 median: {np.median(cluster_2_values)}")
-
         if plot_selectionChannel:
+            cluster_0_values = intensity_values_reshaped[clusters == sorted_clusters[0]].flatten()
+            cluster_1_values = intensity_values_reshaped[clusters == sorted_clusters[1]].flatten()
+            cluster_2_values = intensity_values_reshaped[clusters == sorted_clusters[2]].flatten()
+
+            print(f"Cluster 0 median: {np.median(cluster_0_values)}")
+            print(f"Cluster 1 median: {np.median(cluster_1_values)}")
+            print(f"Cluster 2 median: {np.median(cluster_2_values)}")
             violinAndBoxplotClusters(intensityList, cluster_0_values, cluster_1_values, cluster_2_values)
-        return separatedMasks
+        return self.nuclei
     
     def getDensity(self, roi, region):
         labeled_regions = measure.label(roi)

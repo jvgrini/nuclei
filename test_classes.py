@@ -1,4 +1,4 @@
-from utils import match_images_and_masks, initializeImages
+from utils import match_images_and_masks, initializeImages, createDataframe
 from plot_functions import plotNeuronsRegions, plotNeuronsRegionsbyRegion, plotRegionNeuronsDensity
 from image import Image
 import os
@@ -22,16 +22,19 @@ sham_objects = initializeImages(sham_images)
 
 cluster_values = []
 mean_background = []
-mean_signal = []
-
+mean_signal_sham = []
+mean_signal_contra = []
+mean_signal_ipsi = []
 #Hvis du ser på dette Simen, så vit at jeg driver å endrer hvordan jeg håndterer cellekjerner av forskjellige
 #celletyper og posisjoner i hjernen. Planen nå er å i stedet ha dette som en egenskap for hvert enkelt 
 #cellekjerneobjekt.
 
 for object in contra_objects:
     print(object.name, len(object.nuclei))
-    mean_signal.append(object.getMeanFluorescenceChannel(channel=3))
-    object.clusterMasks = object.classifyCells(inspect_classified_masks=False, plot_selectionChannel=False)
+    mean_signal_contra.append(object.getMeanFluorescenceChannel(channel=1))
+    object.nuclei = object.classifyCells(inspect_classified_masks=False, plot_selectionChannel=False)
+    df = createDataframe(object)
+    df.to_csv("test.csv", index=False)
     object.clusterNuclei = object.measureClusterNucleiInImage(object.clusterMasks)
     object.ca1Clusters = object.measureClusterNucleiInRegion(object.roi, region=1, inspect_regions=False)
     object.dgClusters = object.measureClusterNucleiInRegion(object.roi, region =2, inspect_regions=False)
@@ -52,7 +55,7 @@ for object in contra_objects:
 
 for object in ipsi_objects:
     print(object.name, len(object.nuclei))
-    mean_signal.append(object.getMeanFluorescenceChannel(channel=3))
+    mean_signal_ipsi.append(object.getMeanFluorescenceChannel(channel=1))
     object.clusterMasks = object.classifyCells(inspect_classified_masks=False, plot_selectionChannel=False)
     object.clusterNuclei = object.measureClusterNucleiInImage(object.clusterMasks)
     object.ca1Clusters = object.measureClusterNucleiInRegion(object.roi, region=1, inspect_regions=False)
@@ -74,7 +77,7 @@ for object in ipsi_objects:
 
 for object in sham_objects:
     print(object.name, len(object.nuclei))
-    mean_signal.append(object.getMeanFluorescenceChannel(channel=3))
+    mean_signal_sham.append(object.getMeanFluorescenceChannel(channel=1))
     object.clusterMasks = object.classifyCells(inspect_classified_masks=False, plot_selectionChannel=False)
     object.clusterNuclei = object.measureClusterNucleiInImage(object.clusterMasks)
     object.ca1Clusters = object.measureClusterNucleiInRegion(object.roi, region=1, inspect_regions=False)
@@ -93,4 +96,8 @@ for object in sham_objects:
     print('Mature neurons: ',len(object.clusterNuclei[2]))
     fluo0, fluo1, fluo2 = object.getMeanFluorescenceChannel(3, clusters=True)
     print(np.mean(fluo0), np.mean(fluo1), np.mean(fluo2))
+
+print(f"Mean Neun sham: {mean_signal_sham}")
+print(f"Mean Neun contra: {mean_signal_contra}")
+print(f"Mean Neun ipsi: {mean_signal_ipsi}")
 plotRegionNeuronsDensity(contra_objects, ipsi_objects,sham_objects)

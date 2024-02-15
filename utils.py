@@ -1,9 +1,9 @@
 from skimage import io, measure
 import glob
 import os
+import pandas as pd
 
 from nucleus import Nucleus
-from image import Image
 
 def getNucleiFromImage(imageFilename, maskFilename):
     image = io.imread(imageFilename)
@@ -59,9 +59,33 @@ def match_images_and_masks(image_folder, mask_folder, roi_folder=None):
     return image_files
 
 def initializeImages(images):
+    from image import Image
     objects = []
     for image_info in images:
         name = os.path.basename(image_info[0])  
         image_obj = Image(name, image_info[0], image_info[1], image_info[2])
         objects.append(image_obj)
     return objects
+
+def createDataframe(obj):
+
+    nuclei_data = []
+
+    for nucleus in obj.nuclei:
+        nucleus_dict = {
+                'Label': nucleus.label,
+                'Area': nucleus.area,
+                'CellType': nucleus.cellType,
+                'Location': nucleus.location,
+                'Ch1Intensity': nucleus.ch1Intensity,
+                'Ch2Intensity': nucleus.ch2Intensity,
+                'Ch3Intensity': nucleus.ch3Intensity,
+                'Ch4Intensity': nucleus.ch4Intensity
+                # Add more attributes as needed
+        }
+            # Append the nucleus dictionary to the nuclei_data list
+        nuclei_data.append(nucleus_dict)
+
+# Create a DataFrame from the list of dictionaries
+    nuclei_df = pd.DataFrame(nuclei_data)
+    return nuclei_df

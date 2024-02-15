@@ -4,6 +4,8 @@ class Nucleus:
     def __init__(self, label, area, ch1Intensity, ch2Intensity, ch3Intensity, ch4Intensity=None ):
         self.label = label
         self.area = area
+        self.cellType = "Undefined"
+        self.location = None
         self.ch1Intensity = ch1Intensity
         self.ch2Intensity = ch2Intensity
         self.ch3Intensity = ch3Intensity
@@ -14,9 +16,4 @@ class Nucleus:
         return self.ch4Intensity != None
     
 
-# create object of Room class
-# nucleis = [Nuclei(), Nuclei()]
-
-# if nucleis[0].has4Channels():
-#     nucleis[0].ch4Intensity
 
