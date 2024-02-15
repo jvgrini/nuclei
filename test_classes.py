@@ -1,4 +1,4 @@
-from utils import match_images_and_masks
+from utils import match_images_and_masks, initializeImages
 from plot_functions import plotNeuronsRegions, plotNeuronsRegionsbyRegion, plotRegionNeuronsDensity
 from image import Image
 import os
@@ -16,25 +16,18 @@ sham_mask_folder = "masks_sham"
 sham_images = match_images_and_masks(sham_image_folder, sham_mask_folder, roi_folder)
 ipsi_images = match_images_and_masks(ipsi_image_folder, HI_mask_folder, roi_folder)
 contra_images = match_images_and_masks(contra_image_folder, HI_mask_folder, roi_folder)
-contra_objects = []
-ipsi_objects = []
-sham_objects = []
-for image_info in contra_images:
-    name = os.path.basename(image_info[0])  
-    image_obj = Image(name, image_info[0], image_info[1], image_info[2])
-    contra_objects.append(image_obj)
-for image_info in ipsi_images:
-    name = os.path.basename(image_info[0])  
-    image_obj = Image(name, image_info[0], image_info[1], image_info[2])
-    ipsi_objects.append(image_obj)
-for image_info in sham_images:
-    name = os.path.basename(image_info[0])  
-    image_obj = Image(name, image_info[0], image_info[1], image_info[2])
-    sham_objects.append(image_obj)
+contra_objects = initializeImages(contra_images)
+ipsi_objects = initializeImages(ipsi_images)
+sham_objects = initializeImages(sham_images)
 
 cluster_values = []
 mean_background = []
 mean_signal = []
+
+#Hvis du ser på dette Simen, så vit at jeg driver å endrer hvordan jeg håndterer cellekjerner av forskjellige
+#celletyper og posisjoner i hjernen. Planen nå er å i stedet ha dette som en egenskap for hvert enkelt 
+#cellekjerneobjekt.
+
 for object in contra_objects:
     print(object.name, len(object.nuclei))
     mean_signal.append(object.getMeanFluorescenceChannel(channel=3))

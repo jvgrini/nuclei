@@ -3,6 +3,7 @@ import glob
 import os
 
 from nucleus import Nucleus
+from image import Image
 
 def getNucleiFromImage(imageFilename, maskFilename):
     image = io.imread(imageFilename)
@@ -56,3 +57,11 @@ def match_images_and_masks(image_folder, mask_folder, roi_folder=None):
         if os.path.exists(mask_path) and os.path.exists(roi_path):
             image_files.append([image_path, mask_path, roi_path])
     return image_files
+
+def initializeImages(images):
+    objects = []
+    for image_info in images:
+        name = os.path.basename(image_info[0])  
+        image_obj = Image(name, image_info[0], image_info[1], image_info[2])
+        objects.append(image_obj)
+    return objects

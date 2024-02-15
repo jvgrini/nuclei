@@ -23,7 +23,7 @@ df_melted = df.melt(id_vars=['Category', 'Mouse', 'Slide'], var_name='Cluster', 
 
 # Plot using Seaborn
 plt.figure(figsize=(12, 8))
-sns.boxplot(x='Cluster', y='Mean Value', hue='Category', data=df_melted)
+sns.boxplot(x='Cluster', y='Mean Value', hue='Category', data=df_melted,palette='Set3')
 plt.xlabel('Cluster')
 plt.ylabel('Median NeuN Fluorescence')
 plt.legend(title='Category')
