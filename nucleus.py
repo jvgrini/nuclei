@@ -1,9 +1,11 @@
 # create a class
 class Nucleus:
         # constructor function    
-    def __init__(self, label, area, ch1Intensity, ch2Intensity, ch3Intensity, ch4Intensity=None ):
+    def __init__(self, imageName, label, area, centroid, ch1Intensity, ch2Intensity, ch3Intensity, ch4Intensity=None ):
+        self.imageName = imageName
         self.label = label
         self.area = area
+        self.centroid = centroid
         self.cellType = "Undefined"
         self.location = None
         self.ch1Intensity = ch1Intensity

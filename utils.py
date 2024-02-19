@@ -5,7 +5,7 @@ import pandas as pd
 
 from nucleus import Nucleus
 
-def getNucleiFromImage(imageFilename, maskFilename):
+def getNucleiFromImage(imageFilename, maskFilename, imageName):
     image = io.imread(imageFilename)
     labels = io.imread(maskFilename)
     properties = measure.regionprops(labels, intensity_image=image)
@@ -15,11 +15,14 @@ def getNucleiFromImage(imageFilename, maskFilename):
     for prop in properties:
         region_label = prop.label
         region_area = prop.area
+        region_centroid = prop.centroid
         region_mean_intensity = prop.mean_intensity
         ch1_intensity, ch2_intensity, ch3_intensity, ch4_intensity= region_mean_intensity
         nuclei.append(
-            Nucleus(region_label,
+            Nucleus(imageName,
+                    region_label,
                     region_area,
+                    region_centroid,
                     ch1_intensity,
                     ch2_intensity,
                     ch3_intensity,
@@ -67,14 +70,17 @@ def initializeImages(images):
         objects.append(image_obj)
     return objects
 
-def createDataframe(obj):
+def createDataframe(obj, condition):
 
     nuclei_data = []
 
     for nucleus in obj.nuclei:
         nucleus_dict = {
+                'Condition': condition,
+                'ImageName': nucleus.imageName,
                 'Label': nucleus.label,
                 'Area': nucleus.area,
+                'Centroid': nucleus.centroid,
                 'CellType': nucleus.cellType,
                 'Location': nucleus.location,
                 'Ch1Intensity': nucleus.ch1Intensity,

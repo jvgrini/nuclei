@@ -11,43 +11,89 @@ class Image:
     def __init__(self, name, imageFilepath, maskFilepath, roi_mask):
         self.name = name
         self.scale = ([0.9278, 0.3459, 0.3459])
-        self.nuclei = getNucleiFromImage(imageFilepath, maskFilepath)
+        self.nuclei = getNucleiFromImage(imageFilepath, maskFilepath, self.name)
         self.image = io.imread(imageFilepath)
         self.masks = io.imread(maskFilepath)
         self.roi= io.imread(roi_mask)
-        self.clusterMasks = None
-        self.clusterNuclei = None
-        self.dgClusters = None
-        self.ca1Clusters = None
-        self.ca3Clusters = None
-        self.dgDensity = None
-        self.ca1Density = None
-        self.ca3Density = None
-                
-    def getNucleiWithinRegion(self, regionMask, mask):
+        self.ca1Volume = None
+        self.ca3Volume = None
+        self.dgVolume = None
+
+    def calculateRoiVolume(self):
+        # Initialize volumes for each region
+        ca1_volume = 0
+        ca3_volume = 0
+        dg_volume = 0
+
+        # Calculate properties of each region in the ROI mask
+        properties = measure.regionprops(self.roi)
+
+        # Iterate over properties of each region
+        for prop in properties:
+            region_label = prop.label
+            region_area = prop.area
+
+            if region_label == 1: 
+                ca1_volume += region_area
+            elif region_label == 2:  
+                ca3_volume += region_area
+            elif region_label == 3:  
+                dg_volume += region_area
+
+        self.ca1Volume = ca1_volume * np.prod(self.scale)
+        self.ca3Volume = ca3_volume * np.prod(self.scale)
+        self.dgVolume = dg_volume * np.prod(self.scale)
         
-        nuclei_in_region = regionMask * mask
-        
-        return nuclei_in_region
-        
-    def measureClusterNucleiInImage(self, clusterList):
-        
-        nuclei = getNucleiFromClusters(self.image, clusterList)
-        ## do operation..
-        return nuclei
-    def measureClusterNucleiInRegion(self, roi, region, inspect_regions=False):
-        labeled_regions = measure.label(roi)
-        binary_mask = (labeled_regions == region)
-        masksInRegion = binary_mask * self.clusterMasks
-        if inspect_regions:
-            viewer= napari.view_image(self.image, scale=self.scale, channel_axis=3)
-            viewer.add_labels(binary_mask, scale=self.scale)
-            viewer.add_labels(masksInRegion, scale=self.scale)
-            napari.run()
-        
-        
-        nuclei = getNucleiFromClusters(self.image, masksInRegion)
-        return nuclei
+
+    
+    def calculate_nuclei_locations(self):
+        for nucleus in self.nuclei:
+            # Calculate the centroid of the nucleus
+            centroid_z, centroid_y, centroid_x = nucleus.centroid  # Assuming centroid is in (x, y, z) format
+
+            # Determine the region based on the roi mask
+            region = self.roi[int(centroid_z), int(centroid_y), int(centroid_x)]  # Adjust indexing for 3D
+
+            # Assign location based on the region
+            if region == 1:
+                nucleus.location = "CA1"
+            elif region == 2:
+                nucleus.location = "CA3"
+            elif region == 3:
+                nucleus.location = "DG"
+            else:
+                nucleus.location = "Undefined"
+    def visualize_nuclei_locations(self):
+    # Create a Napari viewer
+        viewer = napari.Viewer()
+
+    # Add ROI mask as an image layer
+        viewer.add_image(self.roi, colormap='gray', name='ROI Mask')
+
+        # Extract nuclei centroids and locations
+        centroids = np.array([nucleus.centroid for nucleus in self.nuclei])
+        locations = [nucleus.location for nucleus in self.nuclei]
+
+        # Create separate points layers for each location
+        for location in set(locations):
+            indices = [i for i, loc in enumerate(locations) if loc == location]
+            centroids_location = centroids[indices]
+            if location == 'CA1':
+                color = 'green'
+     
+            elif location == 'DG':
+                color = 'blue'
+ 
+            elif location == 'CA3':
+                color = 'red'
+   
+            else:
+                color = 'yellow'  # Default color for unknown locations
+
+            viewer.add_points(centroids_location[:, [0, 1, 2]], size=10, symbol='o', edge_color=color, face_color=color, name=f'Nuclei {location}')
+
+        # Run the Napari viewer
+        napari.run()
         
     def getMeanFluorescenceChannel(self, channel, clusters=False):
         channelToMeasure = f"ch{channel}Intensity"
@@ -68,16 +114,12 @@ class Image:
         clusters = kmeans.fit_predict(intensity_values_reshaped)
     
         sorted_clusters = np.argsort(kmeans.cluster_centers_.flatten())
-        
-        print("Unique Cluster Labels:", np.unique(clusters))
-        print("Sorted Cluster Centers:", sorted_clusters)
 
         for nucleus, cluster_label in zip(self.nuclei, clusters):
             if cluster_label == sorted_clusters[1]:  # Check for neunPositiveLow
                 nucleus.cellType = 'neunPositiveLow'
             elif cluster_label == sorted_clusters[2]:  # Check for neunPositive
                 nucleus.cellType = 'neunPositive'
-            print(f"Nucleus cellType: {nucleus.cellType}")
         if inspect_classified_masks:
             # Visualize clustered labels using napari
             spacing = ([0.9278, 0.3459, 0.3459])
