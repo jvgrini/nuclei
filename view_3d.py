@@ -2,7 +2,7 @@ import napari
 from skimage import io
 
 
-img = io.imread("images_HI_contra\HI 1 Contralateral Mouse 8 Slide18 G4green NeuNpink CD86red 40x 4x4 technical replica 2.lsm")
+img = io.imread("imagesAndMasks\images_sham\Sham 1 Contralateral Mouse 6 Slide15 G4green NeuNpink CD86red 40x 5x4 1 one tile of G4 channel bleached.lsm")
 #mask = io.imread("brain_region_masks\Sham 1 Contralateral Mouse 6 Slide15 G4green NeuNpink CD86red 40x 5x4 technical replica 2_regions_mask.tif")
 spacing = ([0.9278, 0.3459, 0.3459])
 viewer = napari.view_image(
