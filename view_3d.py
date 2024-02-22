@@ -1,17 +1,21 @@
 import napari
 from skimage import io
+import czifile
+import numpy as np
 
-
-img = io.imread("imagesAndMasks\images_sham\Sham 1 Contralateral Mouse 6 Slide15 G4green NeuNpink CD86red 40x 5x4 1 one tile of G4 channel bleached.lsm")
-#mask = io.imread("brain_region_masks\Sham 1 Contralateral Mouse 6 Slide15 G4green NeuNpink CD86red 40x 5x4 technical replica 2_regions_mask.tif")
+img = czifile.imread("291123_B5_809cntr_NeuN-Arc-GFP_S2_HPC.czi")
+mask = io.imread("291123_B5_809cntr_NeuN-Arc-GFP_S2_HPC_mask.tif")
 spacing = ([0.9278, 0.3459, 0.3459])
+
+img = np.squeeze(img)
+img = np.transpose(img, (1,2,3,0))
 viewer = napari.view_image(
     img,
     channel_axis=3,
     scale = spacing,
     ndisplay=2
 )
-#viewer.add_labels(mask, scale=spacing)
+viewer.add_labels(mask, scale=spacing)
 napari.run()
 
 
