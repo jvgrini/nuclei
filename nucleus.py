@@ -12,6 +12,7 @@ class Nucleus:
         self.ch2Intensity = ch2Intensity
         self.ch3Intensity = ch3Intensity
         self.ch4Intensity = ch4Intensity
+        self.gfpPositive = None
 
 
     def has4Channels(self):

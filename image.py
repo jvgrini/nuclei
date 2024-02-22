@@ -1,5 +1,6 @@
-from utils import getNucleiFromImage, getNucleiFromClusters
+from utils import getNucleiFromImage
 from plot_functions import violinAndBoxplotClusters
+import czifile
 import numpy as np
 import napari
 from skimage import io, measure, morphology
@@ -8,13 +9,19 @@ import seaborn as sns
 from matplotlib import pyplot as plt
 
 class Image:
-    def __init__(self, name, imageFilepath, maskFilepath, roi_mask):
+    def __init__(self, name, imageFilepath, maskFilepath, roi_mask = None):
         self.name = name
         self.scale = ([0.9278, 0.3459, 0.3459])
         self.nuclei = getNucleiFromImage(imageFilepath, maskFilepath, self.name)
-        self.image = io.imread(imageFilepath)
-        self.masks = io.imread(maskFilepath)
-        self.roi= io.imread(roi_mask)
+        if '.czi' in imageFilepath:
+            self.image = czifile.imread(imageFilepath)
+            self.image = np.squeeze(self.image)
+            self.image = np.transpose(self.image, (1,2,3,0))
+        else:
+            self.image = io.imread(imageFilepath)
+        if roi_mask != None:
+            self.masks = io.imread(maskFilepath)
+            self.roi= io.imread(roi_mask)
         self.ca1Volume = None
         self.ca3Volume = None
         self.dgVolume = None
@@ -105,7 +112,34 @@ class Image:
             cluster1_fluo = [getattr(nucleus, channelToMeasure) for nucleus in self.clusterNuclei[1]]
             cluster2_fluo = [getattr(nucleus, channelToMeasure) for nucleus in self.clusterNuclei[2]]
             return cluster0_fluo, cluster1_fluo, cluster2_fluo
-        
+    
+    def getPositiveGFP(self, channel=1):
+        channelToMeasure = f"ch{channel}Intensity"   
+        intensityList = [getattr(nucleus, channelToMeasure) for nucleus in self.nuclei]
+        intensity_values_reshaped = np.array(intensityList).reshape(-1, 1)
+        kmeans = KMeans(n_clusters=2, random_state=42, n_init="auto")
+        clusters = kmeans.fit_predict(intensity_values_reshaped)
+
+        sorted_clusters = np.argsort(kmeans.cluster_centers_.flatten())
+        for nucleus, cluster_label in zip(self.nuclei, clusters):
+            if cluster_label == sorted_clusters[1]:
+                nucleus.gfpPositive = True
+        return self.nuclei
+    
+    def getNeurons(self, channel=1):
+        channelToMeasure = f"ch{channel}Intensity"   
+        intensityList = [getattr(nucleus, channelToMeasure) for nucleus in self.nuclei]
+        intensity_values_reshaped = np.array(intensityList).reshape(-1, 1)
+        kmeans = KMeans(n_clusters=2, random_state=42, n_init="auto")
+        clusters = kmeans.fit_predict(intensity_values_reshaped)
+
+        sorted_clusters = np.argsort(kmeans.cluster_centers_.flatten())
+        for nucleus, cluster_label in zip(self.nuclei, clusters):
+            if cluster_label == sorted_clusters[1]:
+                nucleus.cellType = 'Neuron'
+        return self.nuclei
+            
+
     def classifyCells(self, numClusters=3, applyROI=True, minArea=250, channel=1, inspect_classified_masks = False, plot_selectionChannel = False):
         channelToMeasure = f"ch{channel}Intensity"   
         intensityList = [getattr(nucleus, channelToMeasure) for nucleus in self.nuclei]
