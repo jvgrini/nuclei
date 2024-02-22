@@ -7,12 +7,15 @@ from skimage import io, measure, morphology
 from sklearn.cluster import KMeans
 import seaborn as sns
 from matplotlib import pyplot as plt
+from scipy.ndimage import distance_transform_edt, binary_dilation, maximum_filter
+from scipy.spatial import Voronoi, voronoi_plot_2d
 
 class Image:
     def __init__(self, name, imageFilepath, maskFilepath, roi_mask = None):
         self.name = name
         self.scale = ([0.9278, 0.3459, 0.3459])
         self.nuclei = getNucleiFromImage(imageFilepath, maskFilepath, self.name)
+        self.masks = io.imread(maskFilepath)
         if '.czi' in imageFilepath:
             self.image = czifile.imread(imageFilepath)
             self.image = np.squeeze(self.image)
@@ -20,12 +23,73 @@ class Image:
         else:
             self.image = io.imread(imageFilepath)
         if roi_mask != None:
-            self.masks = io.imread(maskFilepath)
             self.roi= io.imread(roi_mask)
         self.ca1Volume = None
         self.ca3Volume = None
         self.dgVolume = None
+    
+    def measureCyto(self,visualizeDistanceTransform=False):
+        max_dilation_distance = [3 / scale_factor for scale_factor in self.scale]
+    
+        combined_mask = self.masks.astype(bool)
+        distance_transform = distance_transform_edt(~combined_mask)
 
+        if visualizeDistanceTransform:
+            # Visualize the distance transform
+            plt.figure(figsize=(10, 5))
+            plt.subplot(1, 2, 1)
+            plt.imshow(combined_mask[3], cmap='gray')
+            plt.title('Combined Nuclei Mask')
+
+            plt.subplot(1, 2, 2)
+            plt.imshow(distance_transform[3], cmap='jet')
+            plt.colorbar(label='Distance')
+            plt.title('Distance Transform')
+            plt.show()
+
+        cytoplasm_masks = []
+        unique_labels = np.unique(self.masks)
+        for label in unique_labels:
+            print('yay')
+            # Initialize the initial cytoplasm mask as a copy of the nucleus mask
+            nucleus_mask = self.masks == label
+            cytoplasm_mask = nucleus_mask.copy()
+            
+            # Initialize the previous distance transform value
+            prev_distance_transform = np.inf
+            
+            # Dilate the cytoplasm mask iteratively
+            for _ in range(int(np.ceil(max(max_dilation_distance)))):
+                # Dilate the cytoplasm mask along each axis separately
+                next_cytoplasm_mask = binary_dilation(cytoplasm_mask)
+                
+                # Compute the distance transform for the next cytoplasm mask
+                next_distance_transform = distance_transform_edt(~next_cytoplasm_mask)
+                
+                # Find the maximum distance within the nucleus region
+                nucleus_distance = np.max(next_distance_transform[nucleus_mask])
+                
+                # Check if the next distance transform value is greater than the previous or if the nucleus distance is smaller than the previous
+                if np.max(next_distance_transform) > prev_distance_transform or nucleus_distance < prev_nucleus_distance:
+                    # If we are getting closer to the next nucleus or reaching maximum dilation, stop the dilation
+                    break
+                
+                # Update the cytoplasm mask and the previous distance transform value
+                cytoplasm_mask = next_cytoplasm_mask
+                prev_distance_transform = np.max(next_distance_transform)
+                prev_nucleus_distance = nucleus_distance
+            
+            # Add the cytoplasm mask to the list
+            cytoplasm_masks.append(cytoplasm_mask)
+
+        cytoplasm_masks_array = np.array(cytoplasm_masks)
+        viewer = napari.Viewer()
+        # Add cytoplasm masks to the viewer
+        viewer.add_labels(self.masks,scale=self.scale)
+        viewer.add_labels(cytoplasm_masks_array, scale=self.scale,name='Cyto')
+        napari.run()
+
+        pass
     def calculateRoiVolume(self):
         # Initialize volumes for each region
         ca1_volume = 0

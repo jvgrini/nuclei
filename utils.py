@@ -44,11 +44,11 @@ def getNucleiFromImage(imageFilename, maskFilename, imageName):
     return nuclei
 def match_images_and_masks(image_folder, mask_folder, roi_folder=None):
     image_files = []
-    images = glob.glob(os.path.join(image_folder, '*.czi'))
+    images = glob.glob(os.path.join(image_folder, '*.lsm'))
     for image_path in images:
-        mask_path = os.path.join(mask_folder, os.path.basename(image_path).replace('.czi', '_mask.tif'))
+        mask_path = os.path.join(mask_folder, os.path.basename(image_path).replace('.lsm', '_mask.tif'))
         if roi_folder != None:
-            roi_path = os.path.join(roi_folder, os.path.basename(image_path).replace('.czi', '_regions_mask.tif'))
+            roi_path = os.path.join(roi_folder, os.path.basename(image_path).replace('.lsm', '_regions_mask.tif'))
         if os.path.exists(mask_path) and os.path.exists(roi_path):
             image_files.append([image_path, mask_path, roi_path])
     return image_files
@@ -66,7 +66,7 @@ def initializeImages(images):
     objects = []
     for image_info in images:
         name = os.path.basename(image_info[0])
-        if len(image_info) > 3:  
+        if len(image_info) > 2:  
             image_obj = Image(name, image_info[0], image_info[1], image_info[2])
         else:
             image_obj = Image(name, image_info[0], image_info[1])

@@ -10,7 +10,7 @@ import czifile
 
 spacing = ([0.3459, 0.3459, 0.9278])
 
-folder_path = "imagesAndMasks\liv\ca3"
+folder_path = "imagesAndMasks\liv\dg"
 image_files = glob.glob(f"{folder_path}/*.czi")
 
 
@@ -31,7 +31,7 @@ def segment(img_path):
     else:
         normalized = normalize(new_image[:,:,:,1])
 
-    labels, _ = model.predict_instances(normalized, n_tiles=(4,4,1))
+    labels, _ = model.predict_instances(normalized, n_tiles=(6,6,1))
 
     directory, filename = os.path.split(img_path)
     without_extension, extension = os.path.splitext(filename)

@@ -3,8 +3,8 @@ from skimage import io
 import czifile
 import numpy as np
 
-img = czifile.imread("imagesAndMasks\liv\ca1/280922_A2_298_NeuN-GFP_S3_CA1.czi")
-mask = io.imread("imagesAndMasks\liv\masks/280922_A2_298_NeuN-GFP_S3_CA1_mask.tif")
+img = czifile.imread("imagesAndMasks/angus/291123_B2_766cntr_NeuN-Arc-GFP_S1_HPC.czi")
+mask = io.imread("imagesAndMasks\masks_angus/291123_B2_766cntr_NeuN-Arc-GFP_S1_HPC_mask.tif")
 spacing = ([0.9278, 0.3459, 0.3459])
 
 img = np.squeeze(img)
