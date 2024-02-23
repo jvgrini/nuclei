@@ -22,7 +22,7 @@ ipsi_objects = initializeImages(ipsi_images)
 sham_objects = initializeImages(sham_images)
 
 nucleus_df = pd.DataFrame(columns=['Condition', 'ImageName','Label', 'Area', 'Centroid', 'CellType', 'Location', 'Ch1Intensity', 'Ch2Intensity', 'Ch3Intensity', 'Ch4Intensity'])
-image_df = pd.DataFrame(columns=['ImageName', 'CA1Volume', 'CA3Volume', 'DGVolume'])
+image_df = pd.DataFrame(columns=['Condition','ImageName', 'CA1Volume', 'CA3Volume', 'DGVolume','Ch1Intensity','Ch2Intensity','Ch3Intensity','Ch4Intensity'])
 
 
 
@@ -31,43 +31,58 @@ for object in contra_objects:
     object.nuclei = object.classifyCells(inspect_classified_masks=False, plot_selectionChannel=False)
     object.calculate_nuclei_locations()
     object.calculateRoiVolume()
-    object.measureCyto()
+    object.calculateIntensitiesImage()
+    #object.measureCyto()
     #object.visualize_nuclei_locations()
     object_df = createDataframe(object, condition='Contra')
     nucleus_df = pd.concat([nucleus_df, object_df], ignore_index=True)
-    image_df = pd.concat([image_df, pd.DataFrame({'ImageName': [object.name],
+    image_df = pd.concat([image_df, pd.DataFrame({'Condition': 'Contra','ImageName': [object.name],
                                                                'CA1Volume': [object.ca1Volume],
                                                                'CA3Volume': [object.ca3Volume],
-                                                               'DGVolume': [object.dgVolume]})])
+                                                               'DGVolume': [object.dgVolume],
+                                                               'Ch1Intensity': [object.ch1Intensity],
+                                                               'Ch2Intensity': [object.ch2Intensity],
+                                                               'Ch3Intensity': [object.ch3Intensity],
+                                                               'Ch4Intensity': [object.ch4Intensity]})])
 
 for object in ipsi_objects:
     print(object.name, len(object.nuclei))
     object.nuclei = object.classifyCells(inspect_classified_masks=False, plot_selectionChannel=False)
     object.calculate_nuclei_locations()
     object.calculateRoiVolume()
-    object.measureCyto()
+    object.calculateIntensitiesImage()
+    #object.measureCyto()
     print(object.ca1Volume, object.ca3Volume, object.dgVolume)
     #object.visualize_nuclei_locations()
     object_df = createDataframe(object, condition='Ipsi')
     nucleus_df = pd.concat([nucleus_df, object_df], ignore_index=True)
-    image_df = pd.concat([image_df, pd.DataFrame({'ImageName': [object.name],
+    image_df = pd.concat([image_df, pd.DataFrame({'Condition': 'Ipsi','ImageName': [object.name], 
                                                                'CA1Volume': [object.ca1Volume],
                                                                'CA3Volume': [object.ca3Volume],
-                                                               'DGVolume': [object.dgVolume]})])
+                                                               'DGVolume': [object.dgVolume],
+                                                               'Ch1Intensity': [object.ch1Intensity],
+                                                               'Ch2Intensity': [object.ch2Intensity],
+                                                               'Ch3Intensity': [object.ch3Intensity],
+                                                               'Ch4Intensity': [object.ch4Intensity]})])
 
 for object in sham_objects:
     print(object.name, len(object.nuclei))
     object.nuclei = object.classifyCells(inspect_classified_masks=False, plot_selectionChannel=False)
     object.calculate_nuclei_locations()
     object.calculateRoiVolume()
-    object.measureCyto()
+    object.calculateIntensitiesImage()
+    #object.measureCyto()
     #object.visualize_nuclei_locations()
     object_df = createDataframe(object,condition='Sham')
     nucleus_df = pd.concat([nucleus_df, object_df], ignore_index=True)
-    image_df = pd.concat([image_df, pd.DataFrame({'ImageName': [object.name],
+    image_df = pd.concat([image_df, pd.DataFrame({'Condition': 'Sham','ImageName': [object.name],
                                                                'CA1Volume': [object.ca1Volume],
                                                                'CA3Volume': [object.ca3Volume],
-                                                               'DGVolume': [object.dgVolume]})])
+                                                               'DGVolume': [object.dgVolume],
+                                                               'Ch1Intensity': [object.ch1Intensity],
+                                                               'Ch2Intensity': [object.ch2Intensity],
+                                                               'Ch3Intensity': [object.ch3Intensity],
+                                                               'Ch4Intensity': [object.ch4Intensity]})])
 
-nucleus_df.to_csv("dataAnalysisNotebooks/csv/nuclei.csv", index=False)
+#nucleus_df.to_csv("dataAnalysisNotebooks/csv/nuclei.csv", index=False)
 image_df.to_csv("dataAnalysisNotebooks/csv/images.csv", index=False)

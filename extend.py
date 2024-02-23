@@ -9,7 +9,7 @@ def extend_region_masks(input_folder, output_folder):
 
     # List all TIFF files in the input folder
     tiff_files = [file for file in os.listdir(input_folder) if file.endswith('.tif')]
-
+    print(tiff_files)
     for tiff_file in tiff_files:
         # Read the TIFF image
         image_path = os.path.join(input_folder, tiff_file)

@@ -27,7 +27,21 @@ class Image:
         self.ca1Volume = None
         self.ca3Volume = None
         self.dgVolume = None
+        self.ch1Intensity = None
+        self.ch2Intensity = None
+        self.ch3Intensity = None
+        self.ch4Intensity = None
     
+    def calculateIntensitiesImage(self):
+        num_channels = self.image.shape[-1]
+
+        self.ch1Intensity = np.mean(self.image[:, :, :, 0])
+        self.ch2Intensity = np.mean(self.image[:, :, :, 1])
+        self.ch3Intensity = np.mean(self.image[:, :, :, 2])
+        if num_channels >= 4:
+            self.ch4Intensity = np.mean(self.image[:, :, :, 3])
+
+
     def measureCyto(self,visualizeDistanceTransform=False):
         max_dilation_distance = [3 / scale_factor for scale_factor in self.scale]
     
@@ -98,7 +112,7 @@ class Image:
 
         # Calculate properties of each region in the ROI mask
         properties = measure.regionprops(self.roi)
-
+        print('Shape: ', self.roi.shape)
         # Iterate over properties of each region
         for prop in properties:
             region_label = prop.label
