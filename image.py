@@ -141,11 +141,11 @@ class Image:
 
             # Assign location based on the region
             if region == 1:
-                nucleus.location = "CA1"
-            elif region == 2:
-                nucleus.location = "CA3"
-            elif region == 3:
                 nucleus.location = "DG"
+            # elif region == 2:
+            #     nucleus.location = "CA3"
+            # elif region == 3:
+            #     nucleus.location = "DG"
             else:
                 nucleus.location = "Undefined"
     def visualize_nuclei_locations(self):

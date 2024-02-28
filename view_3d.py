@@ -2,15 +2,21 @@ import napari
 from skimage import io
 import czifile
 import numpy as np
+import tifffile
 
-# img = czifile.imread("imagesAndMasks\liv\mec/231122_A1_241_NeuN-GFP_S1_MEC.czi")
+# img = czifile.imread("imagesAndMasks\liv\mec/170123_A1_363_NeuN-GFP_S1_MEC.czi")
 # img = np.squeeze(img)
 # img = np.transpose(img, (1,2,3,0))
 
-img = io.imread('imagesAndMasks\images_sham\Sham 1 Contralateral Mouse 6 Slide15 G4green NeuNpink CD86red 40x 5x4 1 one tile of G4 channel bleached.lsm')
-mask = io.imread("imagesAndMasks\masks_sham\Sham 1 Contralateral Mouse 6 Slide15 G4green NeuNpink CD86red 40x 5x4 1 one tile of G4 channel bleached_mask.tif")
-spacing = ([0.9278, 0.3459, 0.3459])
-#roi = io.imread("imagesAndMasks/brain_region_masks_extended\Sham 1 Ipsilateral Mouse 6 Slide15 G4green NeuNpink CD86red 40x 5x4 1_regions_mask.tif")
+img = io.imread('imagesAndMasks\Mouzuna\P8 N3 2063 (33) BRAIN1 S1.lsm')
+mask = io.imread("imagesAndMasks\Mouzuna\P8 N3 2063 (33) BRAIN1 S1_mask.tif")
+spacing = ([0.9278349, 0.3459441, 0.3459441])
+#spacing = [1,1,1]
+#roi = io.imread("imagesAndMasks/brain_region_masks_extended\HI 3 Contralateral Mouse 10 Slide18 G4green NeuNpink CD86red 40x 4x4 technical replica1_regions_mask.tif")
+print(img.shape)
+print(type(img))
+
+
 viewer = napari.view_image(
     img,
     channel_axis=3,

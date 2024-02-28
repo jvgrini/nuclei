@@ -85,7 +85,7 @@ conf = Config3D (
     anisotropy       = anisotropy,
     use_gpu          = use_gpu,
     n_channel_in     = n_channel,
-    train_epochs    = 750,
+    train_epochs    = 500,
     # adjust for your data below (make patch size as large as possible)
     train_patch_size = (4,32,32),
     train_batch_size = 2,
@@ -98,7 +98,7 @@ conf = Config3D (
     # alternatively, try this:
 #    limit_gpu_memory(None, allow_growth=True)
 
-model = StarDist3D(conf, name='Hippocampus9.1', basedir='models')
+model = StarDist3D(conf, name='MEC', basedir='models')
 
 
 median_size = calculate_extents(Y, np.median)

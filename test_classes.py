@@ -84,5 +84,5 @@ for object in sham_objects:
                                                                'Ch3Intensity': [object.ch3Intensity],
                                                                'Ch4Intensity': [object.ch4Intensity]})])
 
-#nucleus_df.to_csv("dataAnalysisNotebooks/csv/nuclei.csv", index=False)
+nucleus_df.to_csv("dataAnalysisNotebooks/csv/nuclei.csv", index=False)
 image_df.to_csv("dataAnalysisNotebooks/csv/images.csv", index=False)
