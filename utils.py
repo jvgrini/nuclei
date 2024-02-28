@@ -25,7 +25,7 @@ def getNucleiFromImage(imageFilename, maskFilename, imageName):
     for prop in properties:
         region_label = prop.label
         region_area = prop.area
-        region_centroid = prop.centroid
+        centroid = prop.centroid
         region_mean_intensity = prop.mean_intensity
         if len(region_mean_intensity) > 3:
             ch1_intensity, ch2_intensity, ch3_intensity, ch4_intensity= region_mean_intensity
@@ -36,7 +36,7 @@ def getNucleiFromImage(imageFilename, maskFilename, imageName):
             Nucleus(imageName,
                     region_label,
                     region_area,
-                    region_centroid,
+                    centroid,
                     ch1_intensity,
                     ch2_intensity,
                     ch3_intensity,
@@ -93,7 +93,11 @@ def createDataframe(obj, condition):
                 'Ch2Intensity': nucleus.ch2Intensity,
                 'Ch3Intensity': nucleus.ch3Intensity,
                 'Ch4Intensity': nucleus.ch4Intensity,
-                'gfpPositive': nucleus.gfpPositive
+                'gfpPositive': nucleus.gfpPositive,
+                'CytoCh1Intensity': nucleus.cyto_ch1_intensity,
+                'CytoCh2Intensity': nucleus.cyto_ch2_intensity,
+                'CytoCh3Intensity': nucleus.cyto_ch3_intensity,
+                'CytoCh4Intensity': nucleus.cyto_ch4_intensity,
                 # Add more attributes as needed
         }
             # Append the nucleus dictionary to the nuclei_data list

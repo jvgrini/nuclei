@@ -4,11 +4,16 @@ import czifile
 import numpy as np
 import napari
 from skimage import io, measure, morphology
+from sklearn.neighbors import NearestNeighbors
 from sklearn.cluster import KMeans
 import seaborn as sns
 from matplotlib import pyplot as plt
 from scipy.ndimage import distance_transform_edt, binary_dilation, maximum_filter
 from scipy.spatial import Voronoi, voronoi_plot_2d
+from mpl_toolkits.mplot3d import Axes3D
+from shapely.geometry import Polygon, MultiPolygon
+from shapely.ops import unary_union
+from scipy.spatial import cKDTree
 
 class Image:
     def __init__(self, name, imageFilepath, maskFilepath, roi_mask = None):
@@ -42,67 +47,85 @@ class Image:
             self.ch4Intensity = np.mean(self.image[:, :, :, 3])
 
 
-    def measureCyto(self,visualizeDistanceTransform=False):
-        max_dilation_distance = [3 / scale_factor for scale_factor in self.scale]
+    def measureCyto(self, cytoRadiusUm =2 ):
+        
+        binaryMask = np.copy(self.masks).astype(bool)    
+        
+        dilation_radius_voxels = [int(np.ceil(cytoRadiusUm / s)) for s in self.scale]
+        # Define the dimensions of the spheroid-shaped structuring element based on the desired size
+        z_size = dilation_radius_voxels[0] * 2
+        xy_size = dilation_radius_voxels[1]  * 2 
+
+        # Create a mesh grid of coordinates corresponding to the dimensions of the structuring element
+        z, x, y = np.ogrid[-z_size // 2:z_size // 2 + 1, -xy_size // 2:xy_size // 2 + 1, -xy_size // 2:xy_size // 2 + 1]
+        # Create a spheroid-shaped structuring element
+        structuring_element = (z**2 / dilation_radius_voxels[0]**2 + x**2 / dilation_radius_voxels[1]**2 + y**2 / dilation_radius_voxels[2]**2) <= 1
+        
+        print('selem: ',structuring_element.shape)
+        center_z = structuring_element.shape[0] // 2
+
+        # Visualize each z-plane of the structuring element
+
+        # Perform dilation on the binary mask using the defined structuring element
+        isotropic_dilated_mask = binary_dilation(binaryMask, structuring_element)
+        nucleiSubtracted = np.logical_and(isotropic_dilated_mask, np.logical_not(binaryMask))
+        #viewer = napari.view_labels(nucleiSubtracted, scale=self.scale)
+        #napari.run()
+        #plt.imshow(nucleiSubtracted[4])
+        #plt.axis('off')
+        #plt.savefig('nucleiSubtracted.pdf', bbox_inches='tight')
+        #plt.show()
+        nucleus_indices_with_centroids = [(idx, nucleus.label) for idx, nucleus in enumerate(self.nuclei)]
+
+        nuclei_centroids = [nucleus.centroid for nucleus in self.nuclei]
+        nuclei_centroids = np.array(nuclei_centroids)
+        
+        voxel_grid = np.copy(nucleiSubtracted).astype(np.int16)
+        tree = cKDTree(nuclei_centroids)
+        print('unique', np.unique(voxel_grid))
+        # Iterate over each pixel in the voxel grid
+        true_indices = np.argwhere(voxel_grid == 1)
+        print('shape voxel grid: ', voxel_grid.shape)
+        print(len(true_indices))
+
+        # Iterate over each index with value True in voxel_grid
+        for idx in true_indices:
+            # Convert index to three-dimensional coordinates
+            pixel = np.array(idx)
+            # Find the index of the closest centroid to the current pixel
+            closest_idx = tree.query(pixel)[1]
+            original_nucleus_index = nucleus_indices_with_centroids[closest_idx][1]
+            voxel_grid[idx[0], idx[1], idx[2]] = original_nucleus_index
+        
+        #plt.imshow(voxel_grid[3])
+        #plt.show()
+        
+        properties = measure.regionprops(voxel_grid, intensity_image=self.image)
+
+        nuclei_dict = {nucleus.label: nucleus for nucleus in self.nuclei}
+
+        for prop in properties:
+            region_label = prop.label
+            region_mean_intensity = prop.mean_intensity
+            if len(region_mean_intensity) > 3:
+                ch1_intensity, ch2_intensity, ch3_intensity, ch4_intensity= region_mean_intensity
+            else:
+                ch1_intensity, ch2_intensity, ch3_intensity= region_mean_intensity
+                ch4_intensity = None
+            corresponding_nucleus = nuclei_dict.get(region_label)
     
-        combined_mask = self.masks.astype(bool)
-        distance_transform = distance_transform_edt(~combined_mask)
-
-        if visualizeDistanceTransform:
-            # Visualize the distance transform
-            plt.figure(figsize=(10, 5))
-            plt.subplot(1, 2, 1)
-            plt.imshow(combined_mask[3], cmap='gray')
-            plt.title('Combined Nuclei Mask')
-
-            plt.subplot(1, 2, 2)
-            plt.imshow(distance_transform[3], cmap='jet')
-            plt.colorbar(label='Distance')
-            plt.title('Distance Transform')
-            plt.show()
-
-        cytoplasm_masks = []
-        unique_labels = np.unique(self.masks)
-        for label in unique_labels:
-            print('yay')
-            # Initialize the initial cytoplasm mask as a copy of the nucleus mask
-            nucleus_mask = self.masks == label
-            cytoplasm_mask = nucleus_mask.copy()
-            
-            # Initialize the previous distance transform value
-            prev_distance_transform = np.inf
-            
-            # Dilate the cytoplasm mask iteratively
-            for _ in range(int(np.ceil(max(max_dilation_distance)))):
-                # Dilate the cytoplasm mask along each axis separately
-                next_cytoplasm_mask = binary_dilation(cytoplasm_mask)
-                
-                # Compute the distance transform for the next cytoplasm mask
-                next_distance_transform = distance_transform_edt(~next_cytoplasm_mask)
-                
-                # Find the maximum distance within the nucleus region
-                nucleus_distance = np.max(next_distance_transform[nucleus_mask])
-                
-                # Check if the next distance transform value is greater than the previous or if the nucleus distance is smaller than the previous
-                if np.max(next_distance_transform) > prev_distance_transform or nucleus_distance < prev_nucleus_distance:
-                    # If we are getting closer to the next nucleus or reaching maximum dilation, stop the dilation
-                    break
-                
-                # Update the cytoplasm mask and the previous distance transform value
-                cytoplasm_mask = next_cytoplasm_mask
-                prev_distance_transform = np.max(next_distance_transform)
-                prev_nucleus_distance = nucleus_distance
-            
-            # Add the cytoplasm mask to the list
-            cytoplasm_masks.append(cytoplasm_mask)
-
-        cytoplasm_masks_array = np.array(cytoplasm_masks)
-        viewer = napari.Viewer()
-        # Add cytoplasm masks to the viewer
-        viewer.add_labels(self.masks,scale=self.scale)
-        viewer.add_labels(cytoplasm_masks_array, scale=self.scale,name='Cyto')
-        napari.run()
-
+            # Check if the corresponding nucleus object exists
+            if corresponding_nucleus is not None:
+                # Add mean intensities as attributes to the nucleus object
+                corresponding_nucleus.cyto_ch1_intensity = ch1_intensity
+                corresponding_nucleus.cyto_ch2_intensity = ch2_intensity
+                corresponding_nucleus.cyto_ch3_intensity = ch3_intensity
+                corresponding_nucleus.cyto_ch4_intensity = ch4_intensity
+        
+        #viewer = napari.view_image(self.image, scale=self.scale, channel_axis=3)
+        #viewer.add_labels(self.masks, scale=self.scale, name="nuclei")
+        #viewer.add_labels(voxel_grid, scale=self.scale, name="Cyto")
+        #napari.run()
         pass
     def calculateRoiVolume(self):
         # Initialize volumes for each region
