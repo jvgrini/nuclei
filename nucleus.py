@@ -18,5 +18,9 @@ class Nucleus:
     def has4Channels(self):
         return self.ch4Intensity != None
     
+# create object of Room class
+# nucleis = [Nuclei(), Nuclei()]
 
+# if nucleis[0].has4Channels():
+#     nucleis[0].ch4Intensity
 

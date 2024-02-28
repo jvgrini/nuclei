@@ -23,7 +23,7 @@ def getNucleiFromImage(imageFilename, maskFilename, imageName):
     for prop in properties:
         region_label = prop.label
         region_area = prop.area
-        region_centroid = prop.centroid
+        centroid = prop.centroid
         region_mean_intensity = prop.mean_intensity
         if len(region_mean_intensity) > 3:
             ch1_intensity, ch2_intensity, ch3_intensity, ch4_intensity= region_mean_intensity
@@ -34,7 +34,7 @@ def getNucleiFromImage(imageFilename, maskFilename, imageName):
             Nucleus(imageName,
                     region_label,
                     region_area,
-                    region_centroid,
+                    centroid,
                     ch1_intensity,
                     ch2_intensity,
                     ch3_intensity,
@@ -55,9 +55,9 @@ def match_images_and_masks(image_folder, mask_folder, roi_folder=None):
 
 def match_images_and_masks_without_ROI(image_folder, mask_folder, roi_folder=None):
     image_files = []
-    images = glob.glob(os.path.join(image_folder, '*.czi'))
+    images = glob.glob(os.path.join(image_folder, '*.lsm'))
     for image_path in images:
-        mask_path = os.path.join(mask_folder, os.path.basename(image_path).replace('.czi', '_mask.tif'))
+        mask_path = os.path.join(mask_folder, os.path.basename(image_path).replace('.lsm', '_mask.tif'))
         image_files.append([image_path, mask_path])
     return image_files
 
@@ -90,7 +90,11 @@ def createDataframe(obj, condition):
                 'Ch2Intensity': nucleus.ch2Intensity,
                 'Ch3Intensity': nucleus.ch3Intensity,
                 'Ch4Intensity': nucleus.ch4Intensity,
-                'gfpPositive': nucleus.gfpPositive
+                'gfpPositive': nucleus.gfpPositive,
+                'CytoCh1Intensity': nucleus.cyto_ch1_intensity,
+                'CytoCh2Intensity': nucleus.cyto_ch2_intensity,
+                'CytoCh3Intensity': nucleus.cyto_ch3_intensity,
+                'CytoCh4Intensity': nucleus.cyto_ch4_intensity,
                 # Add more attributes as needed
         }
             # Append the nucleus dictionary to the nuclei_data list

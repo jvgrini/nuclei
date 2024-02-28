@@ -32,7 +32,7 @@ for object in contra_objects:
     object.calculate_nuclei_locations()
     object.calculateRoiVolume()
     object.calculateIntensitiesImage()
-    #object.measureCyto()
+    object.measureCyto()
     #object.visualize_nuclei_locations()
     object_df = createDataframe(object, condition='Contra')
     nucleus_df = pd.concat([nucleus_df, object_df], ignore_index=True)
@@ -85,4 +85,4 @@ for object in sham_objects:
                                                                'Ch4Intensity': [object.ch4Intensity]})])
 
 #nucleus_df.to_csv("dataAnalysisNotebooks/csv/nuclei.csv", index=False)
-image_df.to_csv("dataAnalysisNotebooks/csv/images.csv", index=False)
+#image_df.to_csv("dataAnalysisNotebooks/csv/images.csv", index=False)
