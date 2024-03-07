@@ -156,25 +156,3 @@ taus = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 stats = [matching_dataset(Y_val, Y_val_pred, thresh=t, show_progress=False) for t in tqdm(taus)]
 
 
-print(len(Y_val))
-print(len(Y_val_pred))
-
-viewer = napari.view_image(
-    X_val[0],
-    scale = spacing,
-    ndisplay= 3
-
-)
-viewer.add_labels(
-    Y_val[0],
-    name = "True labels",
-    scale = spacing
-)
-
-viewer.add_labels(
-    Y_val_pred[0],
-    name="Predicted labels",
-    scale=spacing
-)
-#napari.run()
-

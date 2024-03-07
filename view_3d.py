@@ -3,13 +3,14 @@ from skimage import io
 import czifile
 import numpy as np
 import tifffile
+from utils import readImage
 
 # img = czifile.imread("imagesAndMasks\liv\mec/170123_A1_363_NeuN-GFP_S1_MEC.czi")
 # img = np.squeeze(img)
 # img = np.transpose(img, (1,2,3,0))
 
-img = io.imread('imagesAndMasks\Mouzuna\P8 N3 2063 (33) BRAIN1 S1.lsm')
-mask = io.imread("imagesAndMasks\Mouzuna\P8 N3 2063 (33) BRAIN1 S1_mask.tif")
+img = readImage('imagesAndMasks\GFAP\images\ipsi\HI 2 IpsilateralMouse 9 Slide18 GFAPgreen  H3K4me3red 40x 4x4 1.lsm')
+mask = io.imread("imagesAndMasks\GFAP\masks\HI 2 IpsilateralMouse 9 Slide18 GFAPgreen  H3K4me3red 40x 4x4 1_mask.tif")
 spacing = ([0.9278349, 0.3459441, 0.3459441])
 #spacing = [1,1,1]
 #roi = io.imread("imagesAndMasks/brain_region_masks_extended\HI 3 Contralateral Mouse 10 Slide18 G4green NeuNpink CD86red 40x 4x4 technical replica1_regions_mask.tif")

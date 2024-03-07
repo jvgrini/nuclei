@@ -50,7 +50,7 @@ def match_images_and_masks(image_folder, mask_folder, roi_folder=None):
     for image_path in images:
         mask_path = os.path.join(mask_folder, os.path.basename(image_path).replace('.lsm', '_mask.tif'))
         if roi_folder != None:
-            roi_path = os.path.join(roi_folder, os.path.basename(image_path).replace('.lsm', ' DG.tif'))
+            roi_path = os.path.join(roi_folder, os.path.basename(image_path).replace('.lsm', '_regions_mask.tif'))
         if os.path.exists(mask_path) and os.path.exists(roi_path):
             image_files.append([image_path, mask_path, roi_path])
     return image_files
@@ -106,3 +106,13 @@ def createDataframe(obj, condition):
 # Create a DataFrame from the list of dictionaries
     nuclei_df = pd.DataFrame(nuclei_data)
     return nuclei_df
+
+def readImage(imagePath):
+    import czifile
+    if 'czi' in imagePath:
+        image = czifile.imread(imagePath)
+        img = np.squeeze(img)
+        img = np.transpose(img, (1,2,3,0))
+    else:
+        image = io.imread(imagePath)
+    return image

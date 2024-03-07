@@ -9,10 +9,6 @@ from sklearn.cluster import KMeans
 import seaborn as sns
 from matplotlib import pyplot as plt
 from scipy.ndimage import distance_transform_edt, binary_dilation, maximum_filter
-from scipy.spatial import Voronoi, voronoi_plot_2d
-from mpl_toolkits.mplot3d import Axes3D
-from shapely.geometry import Polygon, MultiPolygon
-from shapely.ops import unary_union
 from scipy.spatial import cKDTree
 
 class Image:
@@ -47,7 +43,7 @@ class Image:
             self.ch4Intensity = np.mean(self.image[:, :, :, 3])
 
 
-    def measureCyto(self, cytoRadiusUm =2 ):
+    def measureCyto(self, cytoRadiusUm =.5 ):
         
         binaryMask = np.copy(self.masks).astype(bool)    
         
@@ -80,7 +76,7 @@ class Image:
         nuclei_centroids = [nucleus.centroid for nucleus in self.nuclei]
         nuclei_centroids = np.array(nuclei_centroids)
         
-        voxel_grid = np.copy(nucleiSubtracted).astype(np.int16)
+        voxel_grid = np.copy(isotropic_dilated_mask).astype(np.int16)
         tree = cKDTree(nuclei_centroids)
         print('unique', np.unique(voxel_grid))
         # Iterate over each pixel in the voxel grid
@@ -280,17 +276,6 @@ class Image:
             print(f"Cluster 2 median: {np.median(cluster_2_values)}")
             violinAndBoxplotClusters(intensityList, cluster_0_values, cluster_1_values, cluster_2_values)
         return self.nuclei
-    
-    def getDensity(self, roi, region):
-        labeled_regions = measure.label(roi)
-        binary_mask = (labeled_regions == region)
-        masksInRegion = binary_mask * self.clusterMasks
-        volume = np.sum(binary_mask) * np.prod(self.scale)
-
-        clusters = getNucleiFromClusters(self.image, masksInRegion)
-        density = [((len(nuclei) / volume) * 100**3) for nuclei in clusters]
-        print("Density: ", density)
-        return density
 
     def measureBackground(self):
         nucleiMask = morphology.dilation(self.masks, morphology.ball(5))

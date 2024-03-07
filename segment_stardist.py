@@ -10,7 +10,7 @@ import czifile
 
 spacing = ([0.3459, 0.3459, 0.9278])
 
-folder_path = "imagesAndMasks\Mouzuna"
+folder_path = "imagesAndMasks\GFAP\images\sham"
 image_files = glob.glob(f"{folder_path}/*.lsm")
 
 
@@ -29,14 +29,14 @@ def segment(img_path):
     if new_image.shape[-1] == 4:
         normalized = normalize(new_image[:,:,:,3])
     else:
-        normalized = normalize(new_image[:,:,:,1])
+        normalized = normalize(new_image[:,:,:,2])
 
     labels, _ = model.predict_instances(normalized, n_tiles=(6,6,3))
 
     directory, filename = os.path.split(img_path)
     without_extension, extension = os.path.splitext(filename)
     mask_file_name = f"{without_extension}_mask.tif"
-    mask_path = os.path.join("imagesAndMasks\Mouzuna", mask_file_name)
+    mask_path = os.path.join("imagesAndMasks\GFAP\masks", mask_file_name)
 
     io.imsave(mask_path, labels)
 
