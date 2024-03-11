@@ -9,8 +9,8 @@ from utils import readImage
 # img = np.squeeze(img)
 # img = np.transpose(img, (1,2,3,0))
 
-img = readImage('imagesAndMasks\GFAP\images\ipsi\HI 2 IpsilateralMouse 9 Slide18 GFAPgreen  H3K4me3red 40x 4x4 1.lsm')
-mask = io.imread("imagesAndMasks\GFAP\masks\HI 2 IpsilateralMouse 9 Slide18 GFAPgreen  H3K4me3red 40x 4x4 1_mask.tif")
+img = readImage('imagesAndMasks\images_HI_contra\HI 1 Contralateral Mouse 8 Slide18 G4green NeuNpink CD86red 40x 4x4 technical replica 2.lsm')
+#mask = io.imread("imagesAndMasks\CTCF\masks\HI 8 Ipsilateral NeuNpink CTCFgreen 40x 4x4 1_mask.tif")
 spacing = ([0.9278349, 0.3459441, 0.3459441])
 #spacing = [1,1,1]
 #roi = io.imread("imagesAndMasks/brain_region_masks_extended\HI 3 Contralateral Mouse 10 Slide18 G4green NeuNpink CD86red 40x 4x4 technical replica1_regions_mask.tif")
@@ -24,7 +24,7 @@ viewer = napari.view_image(
     scale = spacing,
     ndisplay=2
 )
-viewer.add_labels(mask, scale=spacing)
+#viewer.add_labels(mask, scale=spacing)
 #viewer.add_labels(roi, scale=spacing)
 napari.run()
 

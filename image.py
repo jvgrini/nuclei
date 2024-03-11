@@ -161,10 +161,10 @@ class Image:
             # Assign location based on the region
             if region == 1:
                 nucleus.location = "DG"
-            # elif region == 2:
-            #     nucleus.location = "CA3"
-            # elif region == 3:
-            #     nucleus.location = "DG"
+            elif region == 2:
+                nucleus.location = "CA3"
+            elif region == 3:
+                nucleus.location = "DG"
             else:
                 nucleus.location = "Undefined"
     def visualize_nuclei_locations(self):
@@ -278,7 +278,7 @@ class Image:
         return self.nuclei
 
     def measureBackground(self):
-        nucleiMask = morphology.dilation(self.masks, morphology.ball(5))
+        nucleiMask = morphology.dilation(self.masks, morphology.ball(3))
         nucleiMask = nucleiMask.astype(bool)
     
         backgroundMask = np.logical_not(nucleiMask)

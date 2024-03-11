@@ -48,6 +48,7 @@ def match_images_and_masks(image_folder, mask_folder, roi_folder=None):
     image_files = []
     images = glob.glob(os.path.join(image_folder, '*.lsm'))
     for image_path in images:
+        print(image_path)
         mask_path = os.path.join(mask_folder, os.path.basename(image_path).replace('.lsm', '_mask.tif'))
         if roi_folder != None:
             roi_path = os.path.join(roi_folder, os.path.basename(image_path).replace('.lsm', '_regions_mask.tif'))
@@ -93,11 +94,11 @@ def createDataframe(obj, condition):
                 'Ch2Intensity': nucleus.ch2Intensity,
                 'Ch3Intensity': nucleus.ch3Intensity,
                 'Ch4Intensity': nucleus.ch4Intensity,
-                'gfpPositive': nucleus.gfpPositive,
-                'CytoCh1Intensity': nucleus.cyto_ch1_intensity,
-                'CytoCh2Intensity': nucleus.cyto_ch2_intensity,
-                'CytoCh3Intensity': nucleus.cyto_ch3_intensity,
-                'CytoCh4Intensity': nucleus.cyto_ch4_intensity,
+                # 'gfpPositive': nucleus.gfpPositive,
+                # 'CytoCh1Intensity': nucleus.cyto_ch1_intensity,
+                # 'CytoCh2Intensity': nucleus.cyto_ch2_intensity,
+                # 'CytoCh3Intensity': nucleus.cyto_ch3_intensity,
+                # 'CytoCh4Intensity': nucleus.cyto_ch4_intensity,
                 # Add more attributes as needed
         }
             # Append the nucleus dictionary to the nuclei_data list
