@@ -76,7 +76,7 @@ class Image:
         nuclei_centroids = [nucleus.centroid for nucleus in self.nuclei]
         nuclei_centroids = np.array(nuclei_centroids)
         
-        voxel_grid = np.copy(isotropic_dilated_mask).astype(np.int16)
+        voxel_grid = np.copy(nucleiSubtracted).astype(np.int16)
         tree = cKDTree(nuclei_centroids)
         print('unique', np.unique(voxel_grid))
         # Iterate over each pixel in the voxel grid
@@ -93,9 +93,7 @@ class Image:
             original_nucleus_index = nucleus_indices_with_centroids[closest_idx][1]
             voxel_grid[idx[0], idx[1], idx[2]] = original_nucleus_index
         
-        #plt.imshow(voxel_grid[3])
-        #plt.show()
-        
+        #merged_mask = np.where(voxel_grid > 0, voxel_grid, self.masks)
         properties = measure.regionprops(voxel_grid, intensity_image=self.image)
 
         nuclei_dict = {nucleus.label: nucleus for nucleus in self.nuclei}
@@ -291,7 +289,7 @@ class Image:
         properties = measure.regionprops(backgroundMask.astype(np.uint8), self.image)
         for prop in properties:
             intensities = prop.mean_intensity
-        intensity = intensities[2]
+        intensity = intensities[1]
         print(f"Mean background intensity: {intensity}")
         return intensity
         

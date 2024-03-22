@@ -8,7 +8,7 @@ def extend_region_masks(input_folder, output_folder):
         os.makedirs(output_folder)
 
     # List all TIFF files in the input folder
-    tiff_files = [file for file in os.listdir(input_folder) if file.endswith(' DG.tif')]
+    tiff_files = [file for file in os.listdir(input_folder) if file.endswith('DG.tif')]
     print(tiff_files)
     for tiff_file in tiff_files:
         # Read the TIFF image
@@ -24,4 +24,4 @@ def extend_region_masks(input_folder, output_folder):
 
         print(f"Extended mask saved: {output_path}")
 
-extend_region_masks("imagesAndMasks\Mouzuna/wt", "imagesAndMasks\Mouzuna/wt")
+extend_region_masks("imagesAndMasks/Mouzuna/wt p8", "imagesAndMasks/Mouzuna/wt p8")

@@ -2,7 +2,6 @@ import numpy as np
 import os
 from skimage import io
 from stardist.models import StarDist3D
-import napari
 from csbdeep.utils import normalize
 import glob
 import czifile
@@ -10,11 +9,11 @@ import czifile
 
 spacing = ([0.3459, 0.3459, 0.9278])
 
-folder_path = "imagesAndMasks\images_HI_ipsi_mix2"
-image_files = glob.glob(f"{folder_path}/*.lsm")
+folder_path = "imagesAndMasks/liv/mec"
+image_files = glob.glob(f"{folder_path}/*.czi")
 
 
-model = StarDist3D(None, name='MEC', basedir='models')
+model = StarDist3D(None, name='MEC0.1', basedir='models')
 
 def segment(img_path):
 
@@ -29,14 +28,14 @@ def segment(img_path):
     if new_image.shape[-1] == 4:
         normalized = normalize(new_image[:,:,:,3])
     else:
-        normalized = normalize(new_image[:,:,:,2])
+        normalized = normalize(new_image[:,:,:,1])
 
     labels, _ = model.predict_instances(normalized, n_tiles=(6,6,3))
 
     directory, filename = os.path.split(img_path)
     without_extension, extension = os.path.splitext(filename)
     mask_file_name = f"{without_extension}_mask.tif"
-    mask_path = os.path.join("imagesAndMasks\masks_HI", mask_file_name)
+    mask_path = os.path.join("imagesAndMasks/liv/masks", mask_file_name)
 
     io.imsave(mask_path, labels)
 

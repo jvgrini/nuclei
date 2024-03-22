@@ -50,8 +50,10 @@ def match_images_and_masks(image_folder, mask_folder, roi_folder=None):
     for image_path in images:
         print(image_path)
         mask_path = os.path.join(mask_folder, os.path.basename(image_path).replace('.lsm', '_mask.tif'))
+        print(mask_path)
         if roi_folder != None:
-            roi_path = os.path.join(roi_folder, os.path.basename(image_path).replace('.lsm', '_regions_mask.tif'))
+            roi_path = os.path.join(roi_folder, os.path.basename(image_path).replace('.lsm', ' DG.tif'))
+            print(roi_path)
         if os.path.exists(mask_path) and os.path.exists(roi_path):
             image_files.append([image_path, mask_path, roi_path])
     return image_files
@@ -94,11 +96,11 @@ def createDataframe(obj, condition):
                 'Ch2Intensity': nucleus.ch2Intensity,
                 'Ch3Intensity': nucleus.ch3Intensity,
                 'Ch4Intensity': nucleus.ch4Intensity,
-                # 'gfpPositive': nucleus.gfpPositive,
-                # 'CytoCh1Intensity': nucleus.cyto_ch1_intensity,
-                # 'CytoCh2Intensity': nucleus.cyto_ch2_intensity,
-                # 'CytoCh3Intensity': nucleus.cyto_ch3_intensity,
-                # 'CytoCh4Intensity': nucleus.cyto_ch4_intensity,
+                #'gfpPositive': nucleus.gfpPositive,
+                #'CytoCh1Intensity': nucleus.cyto_ch1_intensity,
+                #'CytoCh2Intensity': nucleus.cyto_ch2_intensity,
+                #'CytoCh3Intensity': nucleus.cyto_ch3_intensity,
+               # 'CytoCh4Intensity': nucleus.cyto_ch4_intensity,
                 # Add more attributes as needed
         }
             # Append the nucleus dictionary to the nuclei_data list
@@ -112,8 +114,8 @@ def readImage(imagePath):
     import czifile
     if 'czi' in imagePath:
         image = czifile.imread(imagePath)
-        img = np.squeeze(img)
-        img = np.transpose(img, (1,2,3,0))
+        image = np.squeeze(image)
+        image = np.transpose(image, (1,2,3,0))
     else:
         image = io.imread(imagePath)
     return image

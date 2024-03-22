@@ -17,12 +17,10 @@ from csbdeep.utils import Path, normalize
 from stardist import fill_label_holes, random_label_cmap, calculate_extents, gputools_available
 from stardist import Rays_GoldenSpiral
 from stardist.matching import matching, matching_dataset
-from stardist.models import Config3D, StarDist3D, StarDistData3D
+from stardist.models import Config3D, StarDist3D
 
 np.random.seed(66)
 lbl_cmap = random_label_cmap()
-
-spacing = np.array([0.5, 0.1318, 0.1318])
 
 #read input images
 
@@ -85,7 +83,7 @@ conf = Config3D (
     anisotropy       = anisotropy,
     use_gpu          = use_gpu,
     n_channel_in     = n_channel,
-    train_epochs    = 500,
+    train_epochs    = 750,
     # adjust for your data below (make patch size as large as possible)
     train_patch_size = (4,32,32),
     train_batch_size = 2,
@@ -98,7 +96,7 @@ conf = Config3D (
     # alternatively, try this:
 #    limit_gpu_memory(None, allow_growth=True)
 
-model = StarDist3D(conf, name='MEC', basedir='models')
+model = StarDist3D(conf, name='MEC0.1', basedir='models')
 
 
 median_size = calculate_extents(Y, np.median)
@@ -155,4 +153,23 @@ Y_val_pred = [model.predict_instances(x, n_tiles=model._guess_n_tiles(x), show_t
 taus = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 stats = [matching_dataset(Y_val, Y_val_pred, thresh=t, show_progress=False) for t in tqdm(taus)]
 
+print(stats)
 
+fig, (ax1,ax2) = plt.subplots(1,2, figsize=(15,5))
+
+for m in ('precision', 'recall', 'accuracy', 'f1', 'mean_true_score', 'mean_matched_score', 'panoptic_quality'):
+    ax1.plot(taus, [s._asdict()[m] for s in stats], '.-', lw=2, label=m)
+ax1.set_xlabel(r'IoU threshold $\tau$')
+ax1.set_ylabel('Metric value')
+ax1.grid()
+ax1.legend()
+
+for m in ('fp', 'tp', 'fn'):
+    ax2.plot(taus, [s._asdict()[m] for s in stats], '.-', lw=2, label=m)
+ax2.set_xlabel(r'IoU threshold $\tau$')
+ax2.set_ylabel('Number #')
+ax2.grid()
+ax2.legend()
+
+plt.savefig('modelPerformance2.pdf')
+plt.show()
