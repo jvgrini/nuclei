@@ -60,9 +60,9 @@ def match_images_and_masks(image_folder, mask_folder, roi_folder=None):
 
 def match_images_and_masks_without_ROI(image_folder, mask_folder, roi_folder=None):
     image_files = []
-    images = glob.glob(os.path.join(image_folder, '*.lsm'))
+    images = glob.glob(os.path.join(image_folder, '*.czi'))
     for image_path in images:
-        mask_path = os.path.join(mask_folder, os.path.basename(image_path).replace('.lsm', '_mask.tif'))
+        mask_path = os.path.join(mask_folder, os.path.basename(image_path).replace('.czi', '_mask.tif'))
         image_files.append([image_path, mask_path])
     return image_files
 
@@ -96,7 +96,7 @@ def createDataframe(obj, condition):
                 'Ch2Intensity': nucleus.ch2Intensity,
                 'Ch3Intensity': nucleus.ch3Intensity,
                 'Ch4Intensity': nucleus.ch4Intensity,
-                #'gfpPositive': nucleus.gfpPositive,
+                'gfpPositive': nucleus.gfpPositive,
                 #'CytoCh1Intensity': nucleus.cyto_ch1_intensity,
                 #'CytoCh2Intensity': nucleus.cyto_ch2_intensity,
                 #'CytoCh3Intensity': nucleus.cyto_ch3_intensity,

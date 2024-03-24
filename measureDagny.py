@@ -6,23 +6,25 @@ from matplotlib import pyplot as plt
 import pandas as pd
 
 
-image_folder_p2wt = 'imagesAndMasks\Mouzuna\wt p2'
-image_folder_p2n3 = 'imagesAndMasks\Mouzuna/n3 p2'
-image_folder_p8wt = 'imagesAndMasks\Mouzuna\wt p8'
-image_folder_p8n3 = 'imagesAndMasks\Mouzuna/n3 p8'
+image_folder_dg = 'imagesAndMasks/liv/dg'
+image_folder_ca1 = 'imagesAndMasks/liv/ca1'
+image_folder_ca3 = 'imagesAndMasks/liv/ca3'
+image_folder_mec = 'imagesAndMasks/liv/mec'
+mask_folder = 'imagesAndMasks/liv/masks'
 
 
-image_files_p2wt = match_images_and_masks(image_folder_p2wt, image_folder_p2wt, image_folder_p2wt)
-image_files_p2n3 = match_images_and_masks(image_folder_p2n3, image_folder_p2n3, image_folder_p2n3)
-image_files_p8wt = match_images_and_masks(image_folder_p8wt, image_folder_p8wt, image_folder_p8wt)
-image_files_p8n3 = match_images_and_masks(image_folder_p8n3, image_folder_p8n3, image_folder_p8n3)
+image_files_dg = match_images_and_masks_without_ROI(image_folder_dg, mask_folder)
+print(image_files_dg)
+image_files_ca1 = match_images_and_masks_without_ROI(image_folder_ca1, mask_folder)
+image_files_ca3 = match_images_and_masks_without_ROI(image_folder_ca3, mask_folder)
+image_files_mec = match_images_and_masks_without_ROI(image_folder_mec, mask_folder)
 
 #image_files_ca3 = match_images_and_masks_without_ROI(image_folder_ca3, mask_folder)
 #image_files_dg = match_images_and_masks_without_ROI(image_folder_dg, mask_folder)
-image_objects_p2wt = initializeImages(image_files_p2wt)
-image_objects_p2n3 = initializeImages(image_files_p2n3)
-image_objects_p8wt = initializeImages(image_files_p8wt)
-image_objects_p8n3 = initializeImages(image_files_p8n3)
+image_objects_dg = initializeImages(image_files_dg)
+image_objects_ca1 = initializeImages(image_files_ca1)
+image_objects_ca3 = initializeImages(image_files_ca3)
+image_objects_mec = initializeImages(image_files_mec)
 #image_objects_ca3 = initializeImages(image_files_ca3)
 #image_objects_dg = initializeImages(image_files_dg)
 #image_objects_gfp = initializeImages(image_files_gfp)
@@ -30,40 +32,39 @@ image_objects_p8n3 = initializeImages(image_files_p8n3)
 
 nucleus_df = pd.DataFrame(columns=['Condition', 'ImageName','Label', 'Area', 'Centroid', 'CellType', 'Location', 'Ch1Intensity', 'Ch2Intensity', 'Ch3Intensity', 'Ch4Intensity', 'gfpPositive'])
 
-for object in image_objects_p2wt:
-    print(object.name, len(object.nuclei))
-    object.nuclei = object.getNeurons(channel=3)
-    #object.nuclei = object.getPositiveGFP(channel=3)
-    object.calculate_nuclei_locations()
+for object in image_objects_dg:
+    object.nuclei = object.getNeurons(channel=1)
+    object.nuclei = object.getPositiveGFP(channel=3)
+    #object.calculate_nuclei_locations()
     #object.visualize_nuclei_locations()
-    object_df = createDataframe(object, condition='P2WT')
+    object_df = createDataframe(object, condition='DG')
     nucleus_df = pd.concat([nucleus_df, object_df], ignore_index=True)
 
-for object in image_objects_p2n3:
+for object in image_objects_ca1:
     print(object.name, len(object.nuclei))
-    object.nuclei = object.getNeurons(channel=3)
-    #object.nuclei = object.getPositiveGFP(channel=3)
-    object.calculate_nuclei_locations()
+    object.nuclei = object.getNeurons(channel=1)
+    object.nuclei = object.getPositiveGFP(channel=3)
+    #object.calculate_nuclei_locations()
     #object.visualize_nuclei_locations()
-    object_df = createDataframe(object, condition='P2N3')
+    object_df = createDataframe(object, condition='CA1')
     nucleus_df = pd.concat([nucleus_df, object_df], ignore_index=True)
 
-for object in image_objects_p8wt:
+for object in image_objects_ca3:
     print(object.name, len(object.nuclei))
-    object.nuclei = object.getNeurons(channel=3)
-    #object.nuclei = object.getPositiveGFP(channel=3)
-    object.calculate_nuclei_locations()
+    object.nuclei = object.getNeurons(channel=1)
+    object.nuclei = object.getPositiveGFP(channel=3)
+    #object.calculate_nuclei_locations()
     #object.visualize_nuclei_locations()
-    object_df = createDataframe(object, condition='P8WT')
+    object_df = createDataframe(object, condition='CA3')
     nucleus_df = pd.concat([nucleus_df, object_df], ignore_index=True)
 
-for object in image_objects_p8n3:
+for object in image_objects_mec:
     print(object.name, len(object.nuclei))
-    object.nuclei = object.getNeurons(channel=3)
-    #object.nuclei = object.getPositiveGFP(channel=3)
-    object.calculate_nuclei_locations()
+    object.nuclei = object.getNeurons(channel=1)
+    object.nuclei = object.getPositiveGFP(channel=3)
+    #object.calculate_nuclei_locations()
     #object.visualize_nuclei_locations()
-    object_df = createDataframe(object, condition='P8N3')
+    object_df = createDataframe(object, condition='MEC')
     nucleus_df = pd.concat([nucleus_df, object_df], ignore_index=True)
 
 # for object in image_objects_ca3:
@@ -86,5 +87,5 @@ for object in image_objects_p8n3:
 #     object_df = createDataframe(object, condition='HeterozygousKnockout')
 #     nucleus_df = pd.concat([nucleus_df, object_df], ignore_index=True)
 
-nucleus_df.to_csv("dataAnalysisNotebooks/csv/nuclei_mouzuna_2.csv", index=False)
+nucleus_df.to_csv("dataAnalysisNotebooks/csv/nuclei_liv_2.csv", index=False)
 
